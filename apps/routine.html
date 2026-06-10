@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+<meta name="theme-color" content="#ffffff"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<title>Routines</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;margin:0;padding:0}
+html,body{height:100%;background:#F2F2F7}
+body{font-family:-apple-system,BlinkMacSystemFont,'Inter',system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+::-webkit-scrollbar{display:none}
+input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none}
+input,button{font-family:inherit}
+button:active{opacity:.75}
+</style>
+</head>
+<body>
+<a href="../index.html" style="position:fixed;top:max(12px,env(safe-area-inset-top));left:12px;z-index:9999;display:flex;align-items:center;padding:8px 12px;border-radius:999px;background:rgba(255,255,255,.92);border:.5px solid rgba(0,0,0,.08);color:#007AFF;text-decoration:none;font-size:13px;font-weight:600;backdrop-filter:blur(12px);box-shadow:0 2px 12px rgba(0,0,0,.08);font-family:-apple-system,sans-serif">← Hub</a>
+<div id="root"></div>
+<script type="text/babel">
+const{useState,useRef,useEffect}=React;
+
+const EMOJIS=["🛏️","🧴","🪥","🪒","🧘","🚿","💆","✨","🥣","☕","📖","🏃","💊","🧹","👔","🌅","🌙","🧠","💪","🥗","🍵","🧃","🫧","🪴","📝","🎧","🕯️","🫁","🤸","🏋️","🚴","🧗","🛁","👁️","💤","🌿","🫶","🥛","🍳","🧇","🫐","🍎","🪞","🌬️","🫀","🦷","🧼","📱","📅","⭐","🎯","🔥","💫","🌊","🍃","🦋","🌸","🎵","🏆","⚡","🔮","🌈","🧬","🎨","🌺","🍀","🌻","🏅","🐬","🌴","🍁","🎭"];
+const IBGS=["#FF6B6B","#4ECDC4","#45B7D1","#FED766","#A78BFA","#34D399","#FB923C","#F472B6","#60A5FA","#FBBF24","#818CF8","#2DD4BF"];
+const PAL=[{c:"#FF9500"},{c:"#34C759"},{c:"#FF3B30"},{c:"#5856D6"},{c:"#007AFF"},{c:"#FF2D55"},{c:"#AF52DE"},{c:"#00C7BE"}];
+
+const DEF=[
+  {id:1,name:"Morning",emoji:"🌅",color:"#FF9500",tasks:[
+    {id:11,name:"Make bed",emoji:"🛏️",dur:1},{id:12,name:"Cleanse",emoji:"🧴",dur:3},
+    {id:13,name:"Brush teeth",emoji:"🦷",dur:3},{id:14,name:"Shave",emoji:"🪒",dur:5},
+    {id:15,name:"Stretching",emoji:"🤸",dur:5},{id:16,name:"Shower",emoji:"🚿",dur:10},
+    {id:17,name:"Skincare",emoji:"✨",dur:5},{id:18,name:"Breakfast",emoji:"🥣",dur:10}]},
+  {id:2,name:"Yoga",emoji:"🧘",color:"#34C759",tasks:[
+    {id:21,name:"Breathwork",emoji:"🫁",dur:3},{id:22,name:"Warm up",emoji:"🌬️",dur:5},
+    {id:23,name:"Sun salutation",emoji:"🌅",dur:10},{id:24,name:"Flow",emoji:"🧘",dur:15},
+    {id:25,name:"Balance poses",emoji:"🤸",dur:10},{id:26,name:"Cool down",emoji:"🌿",dur:5},
+    {id:27,name:"Meditation",emoji:"🕯️",dur:5}]},
+  {id:3,name:"Workout",emoji:"💪",color:"#FF3B30",tasks:[
+    {id:31,name:"Warm up",emoji:"🏃",dur:5},{id:32,name:"Cardio",emoji:"🚴",dur:15},
+    {id:33,name:"Strength",emoji:"🏋️",dur:20},{id:34,name:"Core",emoji:"🧗",dur:10},
+    {id:35,name:"Cool down",emoji:"💆",dur:5},{id:36,name:"Protein",emoji:"🥛",dur:2}]},
+  {id:4,name:"Night",emoji:"🌙",color:"#5856D6",tasks:[
+    {id:41,name:"Tidy up",emoji:"🧹",dur:5},{id:42,name:"Skincare",emoji:"🧴",dur:5},
+    {id:43,name:"Brush teeth",emoji:"🦷",dur:3},{id:44,name:"Journal",emoji:"📝",dur:10},
+    {id:45,name:"Read",emoji:"📖",dur:20},{id:46,name:"No screens",emoji:"🕯️",dur:10},
+    {id:47,name:"Sleep",emoji:"💤",dur:1}]},
+];
+
+const p2=n=>String(Math.floor(n)).padStart(2,"0");
+const fmt=s=>`${p2(s/60)}:${p2(s%60)}`;
+const tot=ts=>ts.reduce((a,t)=>a+t.dur,0);
+const addM=(d,m)=>new Date(d.getTime()+m*60000);
+const fT=d=>d.toLocaleTimeString([],{hour:"numeric",minute:"2-digit"});
+
+function snd(type,muted){
+  if(muted)return;
+  try{
+    const ctx=new(window.AudioContext||window.webkitAudioContext)();
+    ({complete:[[523,0],[659,.12],[784,.24],[1047,.4]],switch:[[659,0],[784,.12]],pause:[[440,0]],resume:[[523,0],[659,.1]]}[type]||[[440,0]]).forEach(([f,d])=>{
+      const o=ctx.createOscillator(),g=ctx.createGain();
+      o.connect(g);g.connect(ctx.destination);o.frequency.value=f;
+      g.gain.setValueAtTime(0,ctx.currentTime+d);
+      g.gain.linearRampToValueAtTime(.18,ctx.currentTime+d+.03);
+      g.gain.exponentialRampToValueAtTime(.001,ctx.currentTime+d+.4);
+      o.start(ctx.currentTime+d);o.stop(ctx.currentTime+d+.5);
+    });
+  }catch{}
+}
+
+function vibe(t='light'){try{if(navigator.vibrate)navigator.vibrate({light:[12],medium:[25],success:[12,25,12]}[t]||[12]);}catch{}}
+
+function setMS(task,color,rname){
+  if(!('mediaSession' in navigator))return;
+  try{
+    const c=document.createElement('canvas');c.width=c.height=512;
+    const x=c.getContext('2d');
+    x.fillStyle=color;x.fillRect(0,0,512,512);
+    x.font='220px serif';x.textAlign='center';x.textBaseline='middle';x.fillText(task.emoji,256,256);
+    navigator.mediaSession.metadata=new MediaMetadata({title:task.name,artist:rname,artwork:[{src:c.toDataURL(),sizes:'512x512',type:'image/png'}]});
+    navigator.mediaSession.playbackState='playing';
+  }catch{}
+}
+
+async function reqWL(){try{return'wakeLock'in navigator?await navigator.wakeLock.request('screen'):null;}catch{return null;}}
+
+const LS='routines_v5';
+const ldR=()=>{try{const d=localStorage.getItem(LS);return d?JSON.parse(d):null;}catch{return null;}};
+const svR=r=>{try{localStorage.setItem(LS,JSON.stringify(r));}catch{}};
+
+function App(){
+  const[RR,setRR]=useState(()=>ldR()||DEF);
+  const[view,setView]=useState("home");
+  const[sid,setSid]=useState(null);
+  const[ci,setCi]=useState(0);
+  const[tl,setTl]=useState(0);
+  const[run,setRun]=useState(false);
+  const[done,setDone]=useState([]);
+  const[fSt,setFSt]=useState(null);
+  const[rotSt,setRotSt]=useState(null);
+  const[form,setForm]=useState({});
+  const[tf,setTf]=useState({});
+  const[es,setEs]=useState("");
+  const[muted,setMuted]=useState(false);
+
+  const iv=useRef(null),ciR=useRef(0),trR=useRef(0),rrR=useRef(RR),wlR=useRef(null);
+  useEffect(()=>{rrR.current=RR;svR(RR);},[RR]);
+
+  const sel=RR.find(r=>r.id===sid)||null;
+  const stop=()=>clearInterval(iv.current);
+
+  const startT=(i,tasks)=>{
+    stop();
+    const s=tasks[i].dur*60;trR.current=s;setTl(s);setRun(true);
+    const r=rrR.current.find(r=>r.id===sid)||rrR.current[0];
+    setMS(tasks[i],r.color,r.name);
+    iv.current=setInterval(()=>{
+      trR.current-=1;setTl(trR.current);
+      if(trR.current<=0){stop();setRun(false);snd('complete',false);vibe('success');aN(i,rrR.current.find(r=>r.id===sid)?.tasks||[]);}
+    },1000);
+  };
+
+  const resumeT=()=>{
+    stop();setRun(true);
+    if(navigator.mediaSession)navigator.mediaSession.playbackState='playing';
+    iv.current=setInterval(()=>{
+      trR.current-=1;setTl(trR.current);
+      if(trR.current<=0){stop();setRun(false);snd('complete',false);vibe('success');aN(ciR.current,rrR.current.find(r=>r.id===sid)?.tasks||[]);}
+    },1000);
+  };
+
+  const aN=(i,tasks)=>{
+    const n=i+1;
+    if(n>=tasks.length){setView('done');setCi(0);setDone([]);if(wlR.current){wlR.current.release();wlR.current=null;}return;}
+    setDone(d=>[...d,i]);setCi(n);ciR.current=n;
+    startT(n,tasks);snd('switch',muted);
+  };
+
+  const mN=(i,tasks)=>{
+    stop();setRun(false);snd('complete',muted);vibe('medium');
+    if(navigator.mediaSession)navigator.mediaSession.playbackState='paused';
+    const n=i+1;
+    if(n>=tasks.length){setView('done');setCi(0);setDone([]);if(wlR.current){wlR.current.release();wlR.current=null;}return;}
+    setDone(d=>[...d,i]);setCi(n);ciR.current=n;
+    const s=tasks[n].dur*60;trR.current=s;setTl(s);
+  };
+
+  const openF=async(r)=>{
+    setCi(0);ciR.current=0;setDone([]);
+    const now=new Date();setFSt(now);
+    wlR.current=await reqWL();
+    setView('focus');startT(0,r.tasks);
+  };
+
+  const togP=()=>{
+    if(run){stop();setRun(false);snd('pause',muted);vibe('light');if(navigator.mediaSession)navigator.mediaSession.playbackState='paused';}
+    else{snd('resume',muted);vibe('light');resumeT();}
+  };
+
+  const resetT=()=>{
+    stop();setRun(false);vibe('medium');
+    const s=(sel?.tasks[ciR.current]?.dur||1)*60;trR.current=s;setTl(s);
+    if(navigator.mediaSession)navigator.mediaSession.playbackState='paused';
+  };
+
+  const closeF=()=>{stop();setRun(false);if(wlR.current){wlR.current.release();wlR.current=null;}setView('routine');setCi(0);setDone([]);};
+
+  const INP={width:'100%',padding:'13px 16px',borderRadius:14,border:'1.5px solid #E8E8E8',fontSize:16,outline:'none',background:'#fff',color:'#1a1a1a'};
+  const LBL={fontSize:12,color:'#8E8E93',letterSpacing:.5,textTransform:'uppercase',display:'block',marginBottom:8,fontWeight:600};
+  const fe=es?EMOJIS.filter(e=>e.includes(es)):EMOJIS;
+
+  const EP=({value,onChange})=>(
+    <div style={{marginBottom:22}}>
+      <label style={LBL}>Icon</label>
+      <input value={es} onChange={e=>setEs(e.target.value)} placeholder="Search..." style={{...INP,marginBottom:10,fontSize:14}}/>
+      <div style={{display:'flex',flexWrap:'wrap',gap:8,maxHeight:200,overflowY:'auto'}}>
+        {fe.map(e=><button key={e} onClick={()=>onChange(e)} style={{width:44,height:44,borderRadius:12,border:`2.5px solid ${value===e?'#007AFF':'#E8E8E8'}`,background:value===e?'#EBF5FF':'#fff',fontSize:20,cursor:'pointer'}}>{e}</button>)}
+      </div>
+    </div>
+  );
+
+  const WP=({title,back,children})=>(
+    <div style={{background:'#F2F2F7',minHeight:'100vh'}}>
+      <div style={{maxWidth:430,margin:'0 auto',background:'#fff',minHeight:'100vh'}}>
+        <div style={{padding:'52px 20px 0',display:'flex',alignItems:'center'}}>
+          <button onClick={back} style={{background:'none',border:'none',cursor:'pointer',color:'#007AFF',display:'flex',alignItems:'center',fontSize:17,padding:'4px 0'}}>
+            <span style={{fontSize:26,lineHeight:1,marginRight:1,marginTop:-2}}>‹</span>Back
+          </button>
+        </div>
+        <div style={{padding:'14px 20px 0',fontSize:28,fontWeight:800,color:'#1a1a1a',letterSpacing:-.5,marginBottom:24}}>{title}</div>
+        <div style={{padding:'0 20px 60px'}}>{children}</div>
+      </div>
+    </div>
+  );
+
+  /* ── HOME ─────────────────────────────────────── */
+  if(view==='home')return(
+    <div style={{background:'#F2F2F7',minHeight:'100vh'}}>
+      <div style={{maxWidth:430,margin:'0 auto',minHeight:'100vh'}}>
+        <div style={{padding:'64px 20px 8px'}}>
+          <p style={{fontSize:15,color:'#8E8E93',marginBottom:4}}>{new Date().toLocaleDateString([],{weekday:'long',month:'long',day:'numeric'})}</p>
+          <h1 style={{fontSize:34,fontWeight:800,color:'#1a1a1a',letterSpacing:-1}}>My Routines</h1>
+        </div>
+        <div style={{padding:'12px 20px 80px'}}>
+          {RR.map(r=>(
+            <div key={r.id} onClick={()=>{setSid(r.id);setRotSt(new Date());setView('routine');vibe('light');}}
+              style={{background:'#fff',borderRadius:20,marginBottom:10,cursor:'pointer',display:'flex',alignItems:'center',padding:'14px 16px',gap:14,boxShadow:'0 1px 4px rgba(0,0,0,.07)'}}>
+              <div style={{width:52,height:52,borderRadius:15,background:r.color,display:'flex',alignItems:'center',justifyContent:'center',fontSize:26,flexShrink:0}}>{r.emoji}</div>
+              <div style={{flex:1}}>
+                <div style={{fontSize:17,fontWeight:700,color:'#1a1a1a',marginBottom:2}}>{r.name}</div>
+                <div style={{fontSize:13,color:'#8E8E93'}}>{r.tasks.length} tasks · {tot(r.tasks)} min</div>
+              </div>
+              <div style={{display:'flex',alignItems:'center',gap:8}}>
+                <div style={{fontSize:12,color:r.color,fontWeight:600,background:r.color+'1A',padding:'4px 10px',borderRadius:20}}>{tot(r.tasks)}m</div>
+                <span style={{fontSize:20,color:'#C7C7CC'}}>›</span>
+              </div>
+            </div>
+          ))}
+          <button onClick={()=>{setForm({name:'',emoji:'⭐',color:PAL[RR.length%PAL.length].c});setView('addRoutine');}}
+            style={{width:'100%',padding:'16px',background:'#fff',border:'1.5px dashed #C7C7CC',borderRadius:20,fontSize:15,color:'#8E8E93',cursor:'pointer',fontWeight:600,boxShadow:'0 1px 4px rgba(0,0,0,.05)'}}>
+            + New Routine
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+
+  /* ── ROUTINE DETAIL ───────────────────────────── */
+  if(view==='routine'&&sel){
+    const now=rotSt||new Date();
+    const range=`${fT(now)} – ${fT(addM(now,tot(sel.tasks)))} (${tot(sel.tasks)}m)`;
+    return(
+      <div style={{background:'#fff',minHeight:'100vh'}}>
+        <div style={{maxWidth:430,margin:'0 auto',background:'#fff',minHeight:'100vh',position:'relative'}}>
+          <div style={{padding:'52px 20px 0',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+            <button onClick={()=>setView('home')} style={{background:'none',border:'none',cursor:'pointer',color:'#007AFF',display:'flex',alignItems:'center',fontSize:17}}>
+              <span style={{fontSize:26,marginRight:1,marginTop:-1}}>‹</span>Back
+            </button>
+            <button onClick={()=>{setForm({...sel});setView('editRoutine');}} style={{background:'none',border:'none',cursor:'pointer',color:'#8E8E93',fontSize:24,letterSpacing:2,padding:'4px 8px'}}>···</button>
+          </div>
+          <div style={{padding:'12px 20px 0'}}>
+            <h1 style={{fontSize:28,fontWeight:800,color:'#1a1a1a',letterSpacing:-.5,marginBottom:4}}>{sel.name}</h1>
+            <p style={{fontSize:14,color:'#8E8E93',marginBottom:8}}>{range}</p>
+          </div>
+          <div style={{paddingBottom:110}}>
+            {sel.tasks.map((t,i)=>(
+              <div key={t.id} onClick={()=>{setTf({...t,routineId:sid});setView('editTask');vibe('light');}}
+                style={{display:'flex',alignItems:'center',padding:'12px 20px',borderBottom:'1px solid #F5F5F5',cursor:'pointer',gap:12,transition:'background .1s'}}
+                onTouchStart={e=>e.currentTarget.style.background='#F9F9F9'}
+                onTouchEnd={e=>e.currentTarget.style.background=''}>
+                <div style={{width:40,height:40,borderRadius:11,background:IBGS[i%IBGS.length],display:'flex',alignItems:'center',justifyContent:'center',fontSize:19,flexShrink:0}}>{t.emoji}</div>
+                <span style={{flex:1,fontSize:16,fontWeight:500,color:'#1a1a1a'}}>{t.name}</span>
+                <span style={{fontSize:14,color:'#8E8E93',marginRight:12}}>{t.dur}m</span>
+                <div style={{width:24,height:24,borderRadius:'50%',border:'1.5px solid #D1D1D6',flexShrink:0}}/>
+              </div>
+            ))}
+            <button onClick={()=>{setTf({name:'',emoji:'⭐',dur:5,routineId:sid});setView('addTask');}}
+              style={{margin:'12px 20px 0',display:'block',width:'calc(100% - 40px)',padding:'13px',background:'transparent',border:`1.5px dashed ${sel.color}88`,borderRadius:14,fontSize:15,color:sel.color,cursor:'pointer',fontWeight:600}}>
+              + Add task
+            </button>
+          </div>
+          <div style={{position:'fixed',bottom:0,left:'50%',transform:'translateX(-50%)',width:'100%',maxWidth:430,
+            background:'rgba(255,255,255,.94)',backdropFilter:'blur(20px)',WebkitBackdropFilter:'blur(20px)',
+            borderTop:'1px solid rgba(0,0,0,.07)',padding:'14px 0 34px',
+            display:'flex',justifyContent:'center',alignItems:'center',gap:28}}>
+            <button onClick={()=>{setForm({...sel});setView('editRoutine');}}
+              style={{width:48,height:48,borderRadius:'50%',border:'1.5px solid #E0E0E0',background:'#fff',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',fontSize:18,color:'#8E8E93',boxShadow:'0 2px 8px rgba(0,0,0,.07)'}}>✏️</button>
+            <button onClick={()=>{openF(sel);vibe('medium');}}
+              style={{width:66,height:66,borderRadius:'50%',background:'#1C1C1E',border:'none',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',boxShadow:'0 6px 20px rgba(0,0,0,.25)'}}>
+              <span style={{color:'#fff',fontSize:26,marginLeft:4}}>▶</span>
+            </button>
+            <button onClick={()=>{setTf({name:'',emoji:'⭐',dur:5,routineId:sid});setView('addTask');}}
+              style={{width:48,height:48,borderRadius:'50%',background:'#FFD60A',border:'none',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',fontSize:26,fontWeight:700,color:'#1C1C1E',boxShadow:'0 2px 10px rgba(255,214,10,.35)'}}>+</button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  /* ── FOCUS ─────────────────────────────────────── */
+  if(view==='focus'&&sel){
+    const tasks=sel.tasks,task=tasks[ci]||{},nextT=tasks[ci+1];
+    const circ=2*Math.PI*84;
+    const pct=task.dur?tl/(task.dur*60):1;
+    const nextStart=fSt&&nextT?fT(addM(fSt,tasks.slice(0,ci+1).reduce((a,t)=>a+t.dur,0))):null;
+    const allEnds=fSt?fT(addM(fSt,tot(tasks))):null;
+    return(
+      <div style={{background:'#fff',minHeight:'100vh'}}>
+        <div style={{maxWidth:430,margin:'0 auto',display:'flex',flexDirection:'column',minHeight:'100vh'}}>
+          {/* Top bar */}
+          <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'52px 24px 0'}}>
+            <span style={{color:'#D1D1D6',fontSize:22,letterSpacing:2,cursor:'default'}}>···</span>
+            <div style={{fontSize:13,color:'#8E8E93',background:'#F2F2F7',padding:'6px 16px',borderRadius:20,display:'flex',alignItems:'center',gap:5,fontWeight:500}}>
+              <span style={{fontSize:11}}>⏱</span> Focus
+            </div>
+            <button onClick={closeF} style={{width:30,height:30,borderRadius:'50%',background:'#F2F2F7',border:'none',cursor:'pointer',color:'#8E8E93',fontSize:15,display:'flex',alignItems:'center',justifyContent:'center'}}>✕</button>
+          </div>
+
+          {/* Task name */}
+          <div style={{textAlign:'center',padding:'28px 28px 0'}}>
+            <h2 style={{fontSize:26,fontWeight:800,color:'#1a1a1a',letterSpacing:-.5,lineHeight:1.15}}>{task.name}</h2>
+          </div>
+
+          {/* Timer puck — tap to reset */}
+          <div style={{display:'flex',justifyContent:'center',margin:'24px 0 20px'}}>
+            <div onClick={resetT} style={{position:'relative',width:200,height:200,cursor:'pointer',userSelect:'none'}}>
+              <svg width="200" height="200" style={{position:'absolute',inset:0,transform:'rotate(-90deg)'}}>
+                <circle cx="100" cy="100" r="84" fill="#F2F2F7"/>
+                <circle cx="100" cy="100" r="84" fill="none" stroke="#E5E5EA" strokeWidth="4"/>
+                <circle cx="100" cy="100" r="84" fill="none" stroke={sel.color} strokeWidth="4"
+                  strokeDasharray={circ} strokeDashoffset={circ-circ*pct} strokeLinecap="round"
+                  style={{transition:'stroke-dashoffset 1s linear'}}/>
+              </svg>
+              <div style={{position:'absolute',inset:0,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',pointerEvents:'none',gap:2}}>
+                <span style={{fontSize:26}}>{task.emoji}</span>
+                <span style={{fontSize:46,fontWeight:800,letterSpacing:-2,color:'#1a1a1a',fontVariantNumeric:'tabular-nums',lineHeight:1.05}}>{fmt(tl)}</span>
+                <span style={{fontSize:14,color:'#8E8E93',marginTop:3}}>{task.dur}m</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Controls */}
+          <div style={{display:'flex',justifyContent:'center',alignItems:'center',gap:36,marginBottom:20}}>
+            <button onClick={togP}
+              style={{width:50,height:50,borderRadius:'50%',border:'1.5px solid #E0E0E0',background:'#fff',fontSize:20,cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',color:'#1a1a1a',boxShadow:'0 1px 6px rgba(0,0,0,.06)'}}>
+              {run?"⏸":"▶"}
+            </button>
+            <button onClick={()=>mN(ciR.current,tasks)}
+              style={{width:66,height:66,borderRadius:'50%',border:'2.5px solid #1C1C1E',background:'#fff',fontSize:26,cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',color:'#1C1C1E',boxShadow:'0 2px 10px rgba(0,0,0,.09)'}}>✓</button>
+            <button onClick={()=>mN(ciR.current,tasks)}
+              style={{width:50,height:50,borderRadius:'50%',border:'1.5px solid #E0E0E0',background:'#fff',fontSize:17,cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',color:'#8E8E93',boxShadow:'0 1px 6px rgba(0,0,0,.06)'}}>
+              ⏭
+            </button>
+          </div>
+
+          {/* Up next */}
+          <div style={{textAlign:'center',fontSize:13,color:'#8E8E93',padding:'0 28px',marginBottom:16}}>
+            {nextT
+              ?<>Up next · <span style={{color:'#1a1a1a',fontWeight:500}}>{nextT.name}</span>{nextStart&&<> ({nextStart})</>}</>
+              :<span style={{color:'#1a1a1a',fontWeight:500}}>Last task 🎉</span>}
+          </div>
+
+          {/* Bottom strip */}
+          <div style={{margin:'auto 20px 0',marginTop:'auto'}}>
+            <div style={{background:'#F2F2F7',borderRadius:16,padding:'12px 20px',display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:10}}>
+              <button onClick={()=>setMuted(m=>!m)} style={{background:'none',border:'none',cursor:'pointer',fontSize:18,color:'#8E8E93',padding:0,display:'flex',alignItems:'center'}}>
+                {muted?'🔇':'🔔'}
+              </button>
+              <span style={{fontSize:13,color:'#8E8E93'}}>
+                All ends: <span style={{color:'#1a1a1a',fontWeight:600}}>{allEnds}</span>
+              </span>
+              <button onClick={closeF} style={{background:'none',border:'none',cursor:'pointer',fontSize:13,color:'#007AFF',fontWeight:600,padding:0}}>Exit</button>
+            </div>
+            {/* Progress dots */}
+            <div style={{display:'flex',gap:4,marginBottom:36}}>
+              {tasks.map((_,i)=>(
+                <div key={i} style={{flex:1,height:3,borderRadius:2,background:done.includes(i)?sel.color:i===ci?'#C7C7CC':'#F0F0F0',transition:'background .3s'}}/>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  /* ── DONE ──────────────────────────────────────── */
+  if(view==='done'&&sel)return(
+    <div style={{background:'#fff',minHeight:'100vh',display:'flex',justifyContent:'center',alignItems:'center',flexDirection:'column',padding:32}}>
+      <div style={{width:80,height:80,borderRadius:'50%',background:sel.color+'22',display:'flex',alignItems:'center',justifyContent:'center',fontSize:40,marginBottom:20}}>{sel.emoji}</div>
+      <h2 style={{fontSize:28,fontWeight:800,color:'#1a1a1a',marginBottom:8,textAlign:'center',letterSpacing:-.5}}>All done! 🎉</h2>
+      <p style={{fontSize:15,color:'#8E8E93',marginBottom:48,textAlign:'center'}}>{sel.name} · {tot(sel.tasks)} minutes</p>
+      <button onClick={()=>setView('routine')} style={{padding:'15px 52px',background:'#1C1C1E',color:'#fff',border:'none',borderRadius:22,fontSize:16,fontWeight:700,cursor:'pointer',boxShadow:'0 4px 20px rgba(0,0,0,.2)'}}>Done</button>
+    </div>
+  );
+
+  /* ── ADD / EDIT ROUTINE ────────────────────────── */
+  if(view==='addRoutine'||view==='editRoutine'){
+    const isE=view==='editRoutine';
+    const sv=()=>{
+      if(!form.name?.trim())return;vibe('medium');
+      isE?setRR(p=>p.map(r=>r.id===form.id?{...r,...form}:r)):setRR(p=>[...p,{...form,id:Date.now(),tasks:[]}]);
+      setView(isE?'routine':'home');
+    };
+    return <WP title={isE?'Edit Routine':'New Routine'} back={()=>setView(isE?'routine':'home')}>
+      <div style={{marginBottom:18}}><label style={LBL}>Name</label>
+        <input value={form.name||''} onChange={e=>setForm(p=>({...p,name:e.target.value}))} placeholder="e.g. Evening Wind-down" style={INP}/></div>
+      <div style={{marginBottom:18}}><label style={LBL}>Color</label>
+        <div style={{display:'flex',gap:10,flexWrap:'wrap'}}>
+          {PAL.map(({c})=><button key={c} onClick={()=>setForm(p=>({...p,color:c}))} style={{width:42,height:42,borderRadius:12,background:c,border:`3px solid ${form.color===c?'#1a1a1a':'transparent'}`,cursor:'pointer'}}/>)}
+        </div>
+      </div>
+      <EP value={form.emoji} onChange={e=>setForm(p=>({...p,emoji:e}))}/>
+      {isE&&<button onClick={()=>{setRR(p=>p.filter(r=>r.id!==form.id));setView('home');}} style={{width:'100%',padding:'14px',background:'#FFF0F0',color:'#FF3B30',border:'none',borderRadius:14,fontSize:15,fontWeight:700,cursor:'pointer',marginBottom:12}}>Delete Routine</button>}
+      <button onClick={sv} style={{width:'100%',padding:'15px',background:'#1C1C1E',color:'#fff',border:'none',borderRadius:16,fontSize:16,fontWeight:700,cursor:'pointer'}}>{isE?'Save Changes':'Create Routine'}</button>
+    </WP>;
+  }
+
+  /* ── ADD / EDIT TASK ───────────────────────────── */
+  if(view==='addTask'||view==='editTask'){
+    const isE=view==='editTask';
+    const sv=()=>{
+      if(!tf.name?.trim())return;vibe('medium');
+      isE?setRR(p=>p.map(r=>r.id===tf.routineId?{...r,tasks:r.tasks.map(t=>t.id===tf.id?tf:t)}:r))
+        :setRR(p=>p.map(r=>r.id===tf.routineId?{...r,tasks:[...r.tasks,{...tf,id:Date.now()}]}:r));
+      setView('routine');
+    };
+    const dl=()=>{vibe('medium');setRR(p=>p.map(r=>r.id===tf.routineId?{...r,tasks:r.tasks.filter(t=>t.id!==tf.id)}:r));setView('routine');};
+    return <WP title={isE?'Edit Task':'New Task'} back={()=>setView('routine')}>
+      <div style={{marginBottom:18}}><label style={LBL}>Task name</label>
+        <input value={tf.name||''} onChange={e=>setTf(p=>({...p,name:e.target.value}))} placeholder="e.g. Meditate" style={INP} onKeyDown={e=>e.key==='Enter'&&sv()}/></div>
+      <div style={{marginBottom:18}}><label style={LBL}>Duration (minutes)</label>
+        <input type="number" value={tf.dur||5} onChange={e=>setTf(p=>({...p,dur:Number(e.target.value)}))} min={1} max={120} style={INP}/></div>
+      <EP value={tf.emoji} onChange={e=>setTf(p=>({...p,emoji:e}))}/>
+      <div style={{display:'flex',gap:10}}>
+        {isE&&<button onClick={dl} style={{flex:1,padding:'14px',background:'#FFF0F0',border:'none',borderRadius:14,cursor:'pointer',color:'#FF3B30',fontWeight:700,fontSize:15}}>Delete</button>}
+        <button onClick={sv} style={{flex:2,padding:'14px',background:'#1C1C1E',color:'#fff',border:'none',borderRadius:14,fontWeight:700,cursor:'pointer',fontSize:16}}>Save</button>
+      </div>
+    </WP>;
+  }
+
+  return null;
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>
