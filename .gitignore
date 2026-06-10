@@ -1,0 +1,4 @@
+# Local dev — open index.html in browser
+.DS_Store
+Thumbs.db
+*.log
