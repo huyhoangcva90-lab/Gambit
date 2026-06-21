@@ -69,6 +69,7 @@
 .habit-row{display:flex;align-items:center;padding:12px 14px;border-bottom:.5px solid rgba(60,60,67,.08);cursor:pointer;transition:background .1s;-webkit-user-select:none}
 .habit-row:last-child{border-bottom:none}
 .habit-row:active{background:#F5F5F5}
+.habit-row:focus-visible{outline:2px solid #000;outline-offset:-2px;border-radius:8px}
 .h-emoji{font-size:18px;width:34px;text-align:center;flex-shrink:0;margin-right:10px}
 .h-name{font-size:15px;font-weight:500;color:#000;flex:1}
 .h-check{width:25px;height:25px;border-radius:50%;border:2px solid rgba(60,60,67,.2);display:flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0}
@@ -418,9 +419,13 @@ function renderToday(){
     groups[g].forEach(function(h){
       var row=document.createElement('div');row.className='habit-row';
       var checked=day.habits[h.k]||false;
-      row.innerHTML='<div class="h-emoji">'+h.e+'</div><div class="h-name">'+h.l+'</div>'
-        +'<div class="h-check'+(checked?' done':'')+'"><i class="ti ti-check"></i></div>';
+      row.setAttribute('role','checkbox');
+      row.setAttribute('aria-checked',checked?'true':'false');
+      row.tabIndex=0;
+      row.innerHTML='<div class="h-emoji" aria-hidden="true">'+h.e+'</div><div class="h-name">'+h.l+'</div>'
+        +'<div class="h-check'+(checked?' done':'')+'" aria-hidden="true"><i class="ti ti-check"></i></div>';
       row.onclick=function(){toggleH(ds,h.k);};
+      row.onkeydown=function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();toggleH(ds,h.k);}};
       list.appendChild(row);
     });
     b.appendChild(list);
