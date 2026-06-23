@@ -170,8 +170,8 @@
       <div class="page-sub" id="today-s"></div>
     </div>
     <div style="display:flex;gap:8px;padding-top:8px">
-      <button class="nb-btn" onclick="goPrev()"><i class="ti ti-chevron-left"></i></button>
-      <button class="nb-btn" onclick="goNext()"><i class="ti ti-chevron-right"></i></button>
+      <button class="nb-btn" onclick="goPrev()" title="Previous day" aria-label="Previous day"><i class="ti ti-chevron-left"></i></button>
+      <button class="nb-btn" onclick="goNext()" title="Next day" aria-label="Next day"><i class="ti ti-chevron-right"></i></button>
     </div>
   </div>
   <div class="sync-bar"><div class="sdot" id="sdot"></div><span id="stxt">Loading...</span></div>
@@ -369,10 +369,10 @@ function renderToday(){
 
   // Date nav
   var dn=document.createElement('div');dn.className='date-nav';
-  dn.innerHTML='<button class="dnbtn" onclick="goPrev()"><i class="ti ti-chevron-left"></i></button>'
+  dn.innerHTML='<button class="dnbtn" onclick="goPrev()" title="Previous day" aria-label="Previous day"><i class="ti ti-chevron-left"></i></button>'
     +'<div class="date-c"><div class="date-main">'+d2.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'})+'</div>'
     +'<div class="date-s2">'+(isToday?'Today':'Tap to log')+'</div></div>'
-    +'<button class="dnbtn" onclick="goNext()"><i class="ti ti-chevron-right"></i></button>';
+    +'<button class="dnbtn" onclick="goNext()" title="Next day" aria-label="Next day"><i class="ti ti-chevron-right"></i></button>';
   b.appendChild(dn);
 
   // Mood + Energy
