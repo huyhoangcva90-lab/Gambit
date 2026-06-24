@@ -1,3 +1,7 @@
 ## 2024-06-19 - Added ARIA and tooltips to Focus Timer controls
 **Learning:** Found multiple icon-only timer control buttons (Play/Pause, Complete, Skip, Mute, Close) in `apps/routine.html` without accessible labels or tooltips, meaning screen readers would announce them unhelpfully (e.g., "button, button, button") and mouse users would have to guess what "⏭" or "✓" does.
 **Action:** Always verify icon-only buttons have both an `aria-label` (for screen readers) and a `title` (for mouse user tooltips), and update them dynamically when the button state changes (e.g. `title={run?"Pause":"Play"} aria-label={run?"Pause timer":"Start timer"}`).
+
+## 2024-10-24 - Accessibility updates to Habits App Date Navigation and Settings Form
+**Learning:** Found static and dynamic icon-only navigation buttons in `apps/habits.html` missing `aria-label` and `title` tags, hindering screen reader usability and lacking hover tooltips. Furthermore, form labels in the Notion Settings were not properly linked to inputs using the `for` attribute, reducing accessibility.
+**Action:** Ensure both static and dynamically rendered (JS) icon-only buttons get proper ARIA descriptors and titles. Confirm all `<label>` tags use the `for` attribute referencing corresponding input `id` values for enhanced click areas and screen reader association.
