@@ -53,6 +53,7 @@
 .prog-stat-lbl{font-size:10px;color:rgba(60,60,67,.5);margin-top:2px}
 .date-nav{display:flex;align-items:center;justify-content:space-between;padding:0 16px 10px}
 .dnbtn{width:32px;height:32px;border-radius:50%;background:#E5E5EA;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.dnbtn:disabled, .nb-btn:disabled{opacity:0.5;cursor:not-allowed}
 .dnbtn i{font-size:14px;color:#000}
 .date-c{text-align:center;flex:1}
 .date-main{font-size:16px;font-weight:600;color:#000}
@@ -170,8 +171,8 @@
       <div class="page-sub" id="today-s"></div>
     </div>
     <div style="display:flex;gap:8px;padding-top:8px">
-      <button class="nb-btn" onclick="goPrev()"><i class="ti ti-chevron-left"></i></button>
-      <button class="nb-btn" onclick="goNext()"><i class="ti ti-chevron-right"></i></button>
+      <button class="nb-btn" id="btn-prev-day-top" aria-label="Previous day" onclick="goPrev()"><i class="ti ti-chevron-left"></i></button>
+      <button class="nb-btn" id="btn-next-day-top" aria-label="Next day" onclick="goNext()"><i class="ti ti-chevron-right"></i></button>
     </div>
   </div>
   <div class="sync-bar"><div class="sdot" id="sdot"></div><span id="stxt">Loading...</span></div>
@@ -215,11 +216,11 @@
   <div style="height:40px"></div>
 </div>
 
-<div class="tabbar">
-  <button class="tab on" id="tb0" onclick="tab(0)"><i class="ti ti-calendar-event"></i><span>Today</span></button>
-  <button class="tab" id="tb1" onclick="tab(1)"><i class="ti ti-chart-bar"></i><span>Stats</span></button>
-  <button class="tab" id="tb2" onclick="tab(2)"><i class="ti ti-clock"></i><span>History</span></button>
-  <button class="tab" id="tb3" onclick="tab(3)"><i class="ti ti-settings"></i><span>Settings</span></button>
+<div class="tabbar" role="tablist">
+  <button class="tab on" id="tb0" role="tab" aria-selected="true" onclick="tab(0)"><i class="ti ti-calendar-event"></i><span>Today</span></button>
+  <button class="tab" id="tb1" role="tab" aria-selected="false" onclick="tab(1)"><i class="ti ti-chart-bar"></i><span>Stats</span></button>
+  <button class="tab" id="tb2" role="tab" aria-selected="false" onclick="tab(2)"><i class="ti ti-clock"></i><span>History</span></button>
+  <button class="tab" id="tb3" role="tab" aria-selected="false" onclick="tab(3)"><i class="ti ti-settings"></i><span>Settings</span></button>
 </div>
 </div>
 
@@ -326,7 +327,11 @@ function loadSampleData(){
 }
 
 function tab(i){
-  ['tb0','tb1','tb2','tb3'].forEach(function(id,j){document.getElementById(id).classList.toggle('on',j===i);});
+  ['tb0','tb1','tb2','tb3'].forEach(function(id,j){
+    var btn = document.getElementById(id);
+    btn.classList.toggle('on',j===i);
+    btn.setAttribute('aria-selected', j===i ? 'true' : 'false');
+  });
   ['pg-today','pg-stats','pg-history','pg-settings'].forEach(function(id,j){document.getElementById(id).classList.toggle('off',j!==i);});
   if(i===1)renderStats();
   else if(i===2)renderHist();
@@ -369,11 +374,23 @@ function renderToday(){
 
   // Date nav
   var dn=document.createElement('div');dn.className='date-nav';
-  dn.innerHTML='<button class="dnbtn" onclick="goPrev()"><i class="ti ti-chevron-left"></i></button>'
+  var nextBtnAttr = isToday ? 'disabled title="Cannot go to future dates"' : '';
+  dn.innerHTML='<button class="dnbtn" aria-label="Previous day" onclick="goPrev()"><i class="ti ti-chevron-left"></i></button>'
     +'<div class="date-c"><div class="date-main">'+d2.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'})+'</div>'
     +'<div class="date-s2">'+(isToday?'Today':'Tap to log')+'</div></div>'
-    +'<button class="dnbtn" onclick="goNext()"><i class="ti ti-chevron-right"></i></button>';
+    +'<button class="dnbtn" aria-label="Next day" onclick="goNext()" ' + nextBtnAttr + '><i class="ti ti-chevron-right"></i></button>';
   b.appendChild(dn);
+
+  var topNextBtn = document.getElementById('btn-next-day-top');
+  if (topNextBtn) {
+    if (isToday) {
+      topNextBtn.disabled = true;
+      topNextBtn.title = 'Cannot go to future dates';
+    } else {
+      topNextBtn.disabled = false;
+      topNextBtn.title = '';
+    }
+  }
 
   // Mood + Energy
   var mc=document.createElement('div');mc.className='meta-card';
