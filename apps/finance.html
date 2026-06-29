@@ -964,9 +964,9 @@ body{
   </nav>
   <div class="sb-foot">
     <div class="month-ctrl">
-      <button class="month-arr" onclick="changeMonth(-1)">‹</button>
+      <button class="month-arr" onclick="changeMonth(-1)" title="Tháng trước" aria-label="Tháng trước">‹</button>
       <span class="month-lbl" id="monthLbl">Tháng 5 · 2026</span>
-      <button class="month-arr" onclick="changeMonth(1)">›</button>
+      <button class="month-arr" onclick="changeMonth(1)" title="Tháng sau" aria-label="Tháng sau">›</button>
     </div>
   </div>
 </aside>
@@ -975,7 +975,7 @@ body{
 <main class="main">
 <header class="topbar">
   <div class="tb-l">
-    <button class="burger" id="burger" class="burger" onclick="toggleSB()">
+    <button class="burger" id="burger" onclick="toggleSB()" title="Mở menu" aria-label="Mở menu">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
     </button>
     <div class="tb-tabs" id="topTabs">
@@ -1383,7 +1383,7 @@ body{
   <div id="mbox">
     <div class="mhd">
       <div><div class="mt">Thêm giao dịch</div><div class="ms">Ghi nhận chi tiêu hoặc thu nhập</div></div>
-      <button class="mcls" onclick="closeModal()">✕</button>
+      <button class="mcls" onclick="closeModal()" title="Đóng" aria-label="Đóng">✕</button>
     </div>
     <div class="mbdy">
       <div class="type-tgl">
