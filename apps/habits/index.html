@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#F2F2F7">
 <title>Habit Tracker</title>
+<link rel="icon" href="../../assets/favicon.svg" type="image/svg+xml">
 <style>
 .hub-back{position:absolute;top:max(12px,env(safe-area-inset-top));left:16px;z-index:9999;height:36px;display:flex;align-items:center;gap:6px;padding:0 13px 0 10px;border-radius:999px;background:#000;border:1px solid #000;color:#fff;text-decoration:none;font-size:13px;font-weight:650;box-shadow:0 4px 16px rgba(0,0,0,.14);transition:transform .12s,opacity .12s}
 .hub-back:active{transform:scale(.96);opacity:.72}
@@ -146,7 +147,7 @@ body{display:flex;justify-content:center}
 <body>
 <div class="shell">
 <div class="phone">
-<a class="hub-back" href="../index.html" aria-label="Trở về trang chủ"><i class="ti ti-chevron-left"></i><span>Trở về</span></a>
+<a class="hub-back" href="../../index.html" aria-label="Trở về trang chủ"><i class="ti ti-chevron-left"></i><span>Trở về</span></a>
 <div class="di"></div>
 <div class="sb">
   <span class="sb-time" id="sbt">9:41</span>
@@ -621,6 +622,6 @@ function toast(msg){var el=document.getElementById('toast');el.textContent=msg;e
 
 init();
 </script>
-<script src="../app-guard.js"></script>
+<script src="../../app-guard.js"></script>
 </body>
 </html>

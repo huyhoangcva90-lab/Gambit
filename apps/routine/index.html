@@ -7,24 +7,40 @@
 <meta name="apple-mobile-web-app-capable" content="yes"/>
 <meta name="mobile-web-app-capable" content="yes"/>
 <title>Routines</title>
+<link rel="icon" href="../../assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../../assets/vendor/tabler/tabler-icons.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
 <style>
+:root{--bg:#f3f2ee;--surface:#fff;--surface-2:#ebeae5;--ink:#171a18;--muted:#747872;--line:#dedfd9;--accent:#536b55;--accent-soft:#e4ebe3;--danger:#b64842;--shadow:0 8px 24px rgba(25,29,26,.07)}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;margin:0;padding:0}
-html,body{height:100%;background:#F2F2F7}
-body{font-family:-apple-system,BlinkMacSystemFont,'Inter',system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+html,body{height:100%;background:var(--bg)}
+body{font-family:-apple-system,BlinkMacSystemFont,'Inter',system-ui,sans-serif;-webkit-font-smoothing:antialiased;color:var(--ink)}
 ::-webkit-scrollbar{display:none}
 input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none}
 input,button{font-family:inherit}
-button:active{opacity:.75}
-.hub-back{position:fixed;top:max(12px,env(safe-area-inset-top));left:max(12px,calc(50% - 203px));z-index:9999;height:38px;padding:0 13px 0 10px;border-radius:999px;background:#007AFF;border:1px solid #007AFF;color:#fff;text-decoration:none;display:flex;align-items:center;gap:6px;font-size:13px;font-weight:650;box-shadow:0 5px 18px rgba(0,122,255,.24);transition:transform .12s,opacity .12s}
+button{touch-action:manipulation}
+button:active{opacity:.72}
+.hub-back{position:fixed;top:max(12px,env(safe-area-inset-top));left:max(12px,calc(50% - 203px));z-index:9999;height:40px;padding:0 13px 0 10px;border-radius:8px;background:var(--ink);border:1px solid var(--ink);color:#fff;text-decoration:none;display:flex;align-items:center;gap:6px;font-size:13px;font-weight:650;box-shadow:var(--shadow);transition:transform .12s,opacity .12s}
 .hub-back:active{transform:scale(.96);opacity:.75}
 .hub-back svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.ti{font-size:1.15em;line-height:1}
+.icon-button{width:44px!important;height:44px!important;border-radius:8px!important}
+.routine-shell{background:var(--bg)!important}
+.routine-frame{background:transparent!important}
+.routine-card{border-radius:8px!important;border:1px solid var(--line)!important;box-shadow:none!important;transition:transform .18s ease,border-color .18s ease!important}
+.routine-card:hover{transform:translateY(-2px);border-color:#bfc4bd!important}
+.routine-mark{background:var(--accent-soft)!important;color:var(--accent)!important;border-radius:8px!important}
+.task-mark{background:var(--surface-2)!important;color:var(--ink)!important;border-radius:8px!important}
+.primary-action{background:var(--ink)!important;color:#fff!important}
+.secondary-action{background:var(--surface)!important;color:var(--ink)!important;border:1px solid var(--line)!important}
+.accent-action{background:var(--accent)!important;color:#fff!important}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
 </style>
 </head>
 <body>
-<a class="hub-back" href="../index.html" aria-label="Trở về trang chủ"><svg viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg><span>Trở về</span></a>
+<a class="hub-back" href="../../index.html" aria-label="Trở về trang chủ"><svg viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg><span>Trở về</span></a>
 <div id="root"></div>
 <script type="text/babel">
 const{useState,useRef,useEffect}=React;
@@ -95,6 +111,10 @@ async function reqWL(){try{return'wakeLock'in navigator?await navigator.wakeLock
 const LS='routines_v5';
 const ldR=()=>{try{const d=localStorage.getItem(LS);return d?JSON.parse(d):null;}catch{return null;}};
 const svR=r=>{try{localStorage.setItem(LS,JSON.stringify(r));}catch{}};
+
+const Icon=({name,size=20})=><i className={`ti ti-${name}`} aria-hidden="true" style={{fontSize:size}}/>;
+const routineIcon=name=>/yoga/i.test(name)?'yoga':/work|gym/i.test(name)?'barbell':/night|sleep/i.test(name)?'moon-stars':/morning/i.test(name)?'sunrise':'repeat';
+const taskIcon=name=>/bed|sleep/i.test(name)?'bed':/brush|teeth/i.test(name)?'dental':/shower|cleanse|skin/i.test(name)?'droplet':/read/i.test(name)?'book-2':/journal|write/i.test(name)?'pencil':/meditat|breath/i.test(name)?'wind':/breakfast|protein|eat/i.test(name)?'bowl-spoon':/cardio|run/i.test(name)?'run':/strength|workout|core/i.test(name)?'barbell':/tidy|clean/i.test(name)?'sparkles':/stretch|yoga|flow|pose/i.test(name)?'yoga':'circle-dotted';
 
 function App(){
   const[RR,setRR]=useState(()=>ldR()||DEF);
@@ -192,7 +212,7 @@ function App(){
       <div style={{maxWidth:430,margin:'0 auto',background:'#fff',minHeight:'100vh'}}>
         <div style={{padding:'52px 20px 0',display:'flex',alignItems:'center'}}>
           <button onClick={back} style={{background:'none',border:'none',cursor:'pointer',color:'#007AFF',display:'flex',alignItems:'center',fontSize:17,padding:'4px 0'}}>
-            <span style={{fontSize:26,lineHeight:1,marginRight:1,marginTop:-2}}>‹</span>Back
+            <Icon name="chevron-left" size={21}/> Back
           </button>
         </div>
         <div style={{padding:'14px 20px 0',fontSize:28,fontWeight:800,color:'#1a1a1a',letterSpacing:-.5,marginBottom:24}}>{title}</div>
@@ -203,30 +223,31 @@ function App(){
 
   /* ── HOME ─────────────────────────────────────── */
   if(view==='home')return(
-    <div style={{background:'#F2F2F7',minHeight:'100vh'}}>
-      <div style={{maxWidth:430,margin:'0 auto',minHeight:'100vh'}}>
+    <div className="routine-shell" style={{background:'#F2F2F7',minHeight:'100vh'}}>
+      <div className="routine-frame" style={{maxWidth:430,margin:'0 auto',minHeight:'100vh'}}>
         <div style={{padding:'64px 20px 8px'}}>
-          <p style={{fontSize:15,color:'#8E8E93',marginBottom:4}}>{new Date().toLocaleDateString([],{weekday:'long',month:'long',day:'numeric'})}</p>
-          <h1 style={{fontSize:34,fontWeight:800,color:'#1a1a1a',letterSpacing:-1}}>My Routines</h1>
+          <p style={{fontSize:13,color:'var(--muted)',marginBottom:6,fontWeight:600}}>{new Date().toLocaleDateString([],{weekday:'long',month:'long',day:'numeric'})}</p>
+          <h1 style={{fontSize:32,fontWeight:760,color:'var(--ink)',letterSpacing:0}}>Routines</h1>
+          <p style={{fontSize:14,color:'var(--muted)',marginTop:6,lineHeight:1.5}}>Build a steady rhythm, one sequence at a time.</p>
         </div>
         <div style={{padding:'12px 20px 80px'}}>
           {RR.map(r=>(
-            <div key={r.id} onClick={()=>{setSid(r.id);setRotSt(new Date());setView('routine');vibe('light');}}
+            <div className="routine-card" key={r.id} onClick={()=>{setSid(r.id);setRotSt(new Date());setView('routine');vibe('light');}}
               style={{background:'#fff',borderRadius:20,marginBottom:10,cursor:'pointer',display:'flex',alignItems:'center',padding:'14px 16px',gap:14,boxShadow:'0 1px 4px rgba(0,0,0,.07)'}}>
-              <div style={{width:52,height:52,borderRadius:15,background:r.color,display:'flex',alignItems:'center',justifyContent:'center',fontSize:26,flexShrink:0}}>{r.emoji}</div>
+              <div className="routine-mark" style={{width:48,height:48,borderRadius:15,background:r.color,display:'flex',alignItems:'center',justifyContent:'center',fontSize:26,flexShrink:0}}><Icon name={routineIcon(r.name)} size={23}/></div>
               <div style={{flex:1}}>
-                <div style={{fontSize:17,fontWeight:700,color:'#1a1a1a',marginBottom:2}}>{r.name}</div>
-                <div style={{fontSize:13,color:'#8E8E93'}}>{r.tasks.length} tasks · {tot(r.tasks)} min</div>
+                <div style={{fontSize:16,fontWeight:700,color:'var(--ink)',marginBottom:3}}>{r.name}</div>
+                <div style={{fontSize:13,color:'var(--muted)'}}>{r.tasks.length} tasks · {tot(r.tasks)} min</div>
               </div>
               <div style={{display:'flex',alignItems:'center',gap:8}}>
-                <div style={{fontSize:12,color:r.color,fontWeight:600,background:r.color+'1A',padding:'4px 10px',borderRadius:20}}>{tot(r.tasks)}m</div>
-                <span style={{fontSize:20,color:'#C7C7CC'}}>›</span>
+                <div style={{fontSize:12,color:'var(--accent)',fontWeight:700,background:'var(--accent-soft)',padding:'5px 9px',borderRadius:6}}>{tot(r.tasks)}m</div>
+                <Icon name="chevron-right" size={18}/>
               </div>
             </div>
           ))}
           <button onClick={()=>{setForm({name:'',emoji:'⭐',color:PAL[RR.length%PAL.length].c});setView('addRoutine');}}
-            style={{width:'100%',padding:'16px',background:'#fff',border:'1.5px dashed #C7C7CC',borderRadius:20,fontSize:15,color:'#8E8E93',cursor:'pointer',fontWeight:600,boxShadow:'0 1px 4px rgba(0,0,0,.05)'}}>
-            + New Routine
+            style={{width:'100%',minHeight:48,padding:'13px',background:'transparent',border:'1px dashed #aeb3ac',borderRadius:8,fontSize:14,color:'var(--muted)',cursor:'pointer',fontWeight:650,display:'flex',alignItems:'center',justifyContent:'center',gap:8}}>
+            <Icon name="plus" size={18}/> New routine
           </button>
         </div>
       </div>
@@ -242,9 +263,9 @@ function App(){
         <div style={{maxWidth:430,margin:'0 auto',background:'#fff',minHeight:'100vh',position:'relative'}}>
           <div style={{padding:'52px 20px 0',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
             <button onClick={()=>setView('home')} style={{background:'none',border:'none',cursor:'pointer',color:'#007AFF',display:'flex',alignItems:'center',fontSize:17}}>
-              <span style={{fontSize:26,marginRight:1,marginTop:-1}}>‹</span>Back
+              <Icon name="chevron-left" size={21}/> Back
             </button>
-            <button onClick={()=>{setForm({...sel});setView('editRoutine');}} style={{background:'none',border:'none',cursor:'pointer',color:'#8E8E93',fontSize:24,letterSpacing:2,padding:'4px 8px'}}>···</button>
+            <button onClick={()=>{setForm({...sel});setView('editRoutine');}} aria-label="Routine options" title="Routine options" className="icon-button" style={{background:'none',border:'none',cursor:'pointer',color:'#8E8E93',padding:0}}><Icon name="dots" size={22}/></button>
           </div>
           <div style={{padding:'12px 20px 0'}}>
             <h1 style={{fontSize:28,fontWeight:800,color:'#1a1a1a',letterSpacing:-.5,marginBottom:4}}>{sel.name}</h1>
@@ -256,7 +277,7 @@ function App(){
                 style={{display:'flex',alignItems:'center',padding:'12px 20px',borderBottom:'1px solid #F5F5F5',cursor:'pointer',gap:12,transition:'background .1s'}}
                 onTouchStart={e=>e.currentTarget.style.background='#F9F9F9'}
                 onTouchEnd={e=>e.currentTarget.style.background=''}>
-                <div style={{width:40,height:40,borderRadius:11,background:IBGS[i%IBGS.length],display:'flex',alignItems:'center',justifyContent:'center',fontSize:19,flexShrink:0}}>{t.emoji}</div>
+                <div className="task-mark" style={{width:40,height:40,borderRadius:11,background:IBGS[i%IBGS.length],display:'flex',alignItems:'center',justifyContent:'center',fontSize:19,flexShrink:0}}><Icon name={taskIcon(t.name)} size={19}/></div>
                 <span style={{flex:1,fontSize:16,fontWeight:500,color:'#1a1a1a'}}>{t.name}</span>
                 <span style={{fontSize:14,color:'#8E8E93',marginRight:12}}>{t.dur}m</span>
                 <div style={{width:24,height:24,borderRadius:'50%',border:'1.5px solid #D1D1D6',flexShrink:0}}/>
@@ -264,7 +285,7 @@ function App(){
             ))}
             <button onClick={()=>{setTf({name:'',emoji:'⭐',dur:5,routineId:sid});setView('addTask');}}
               style={{margin:'12px 20px 0',display:'block',width:'calc(100% - 40px)',padding:'13px',background:'transparent',border:`1.5px dashed ${sel.color}88`,borderRadius:14,fontSize:15,color:sel.color,cursor:'pointer',fontWeight:600}}>
-              + Add task
+              <Icon name="plus" size={17}/> Add task
             </button>
           </div>
           <div style={{position:'fixed',bottom:0,left:'50%',transform:'translateX(-50%)',width:'100%',maxWidth:430,
@@ -272,13 +293,16 @@ function App(){
             borderTop:'1px solid rgba(0,0,0,.07)',padding:'14px 0 34px',
             display:'flex',justifyContent:'center',alignItems:'center',gap:28}}>
             <button onClick={()=>{setForm({...sel});setView('editRoutine');}}
-              style={{width:48,height:48,borderRadius:'50%',border:'1.5px solid #E0E0E0',background:'#fff',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',fontSize:18,color:'#8E8E93',boxShadow:'0 2px 8px rgba(0,0,0,.07)'}}>✏️</button>
+              className="icon-button secondary-action" aria-label="Edit routine" title="Edit routine"
+              style={{width:48,height:48,borderRadius:'50%',border:'1.5px solid #E0E0E0',background:'#fff',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',fontSize:18,color:'#8E8E93',boxShadow:'0 2px 8px rgba(0,0,0,.07)'}}><Icon name="pencil" size={20}/></button>
             <button onClick={()=>{openF(sel);vibe('medium');}}
-              style={{width:66,height:66,borderRadius:'50%',background:'#1C1C1E',border:'none',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',boxShadow:'0 6px 20px rgba(0,0,0,.25)'}}>
-              <span style={{color:'#fff',fontSize:26,marginLeft:4}}>▶</span>
+              className="primary-action" aria-label="Start routine" title="Start routine"
+              style={{width:64,height:56,borderRadius:8,background:'#1C1C1E',border:'none',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',boxShadow:'0 6px 20px rgba(0,0,0,.18)'}}>
+              <Icon name="player-play-filled" size={24}/>
             </button>
             <button onClick={()=>{setTf({name:'',emoji:'⭐',dur:5,routineId:sid});setView('addTask');}}
-              style={{width:48,height:48,borderRadius:'50%',background:'#FFD60A',border:'none',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',fontSize:26,fontWeight:700,color:'#1C1C1E',boxShadow:'0 2px 10px rgba(255,214,10,.35)'}}>+</button>
+              className="icon-button accent-action" aria-label="Add task" title="Add task"
+              style={{width:48,height:48,borderRadius:'50%',background:'#FFD60A',border:'none',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',fontSize:26,fontWeight:700,color:'#1C1C1E',boxShadow:'none'}}><Icon name="plus" size={22}/></button>
           </div>
         </div>
       </div>
@@ -297,9 +321,9 @@ function App(){
         <div style={{maxWidth:430,margin:'0 auto',display:'flex',flexDirection:'column',minHeight:'100vh'}}>
           {/* Top bar */}
           <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'52px 24px 0'}}>
-            <span style={{color:'#D1D1D6',fontSize:22,letterSpacing:2,cursor:'default'}}>···</span>
+            <span style={{color:'#D1D1D6',display:'flex'}}><Icon name="progress" size={21}/></span>
             <div style={{fontSize:13,color:'#8E8E93',background:'#F2F2F7',padding:'6px 16px',borderRadius:20,display:'flex',alignItems:'center',gap:5,fontWeight:500}}>
-              <span style={{fontSize:11}}>⏱</span> Focus
+              <Icon name="hourglass" size={14}/> Focus
             </div>
             <button onClick={closeF} title="Close timer" aria-label="Close timer" style={{width:30,height:30,borderRadius:'50%',background:'#F2F2F7',border:'none',cursor:'pointer',color:'#8E8E93',fontSize:15,display:'flex',alignItems:'center',justifyContent:'center'}}>✕</button>
           </div>
@@ -331,13 +355,13 @@ function App(){
           <div style={{display:'flex',justifyContent:'center',alignItems:'center',gap:36,marginBottom:20}}>
             <button onClick={togP} title={run?"Pause":"Play"} aria-label={run?"Pause timer":"Start timer"}
               style={{width:50,height:50,borderRadius:'50%',border:'1.5px solid #E0E0E0',background:'#fff',fontSize:20,cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',color:'#1a1a1a',boxShadow:'0 1px 6px rgba(0,0,0,.06)'}}>
-              {run?"⏸":"▶"}
+              <Icon name={run?"player-pause-filled":"player-play-filled"} size={20}/>
             </button>
             <button onClick={()=>mN(ciR.current,tasks)} title="Complete task" aria-label="Complete task"
-              style={{width:66,height:66,borderRadius:'50%',border:'2.5px solid #1C1C1E',background:'#fff',fontSize:26,cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',color:'#1C1C1E',boxShadow:'0 2px 10px rgba(0,0,0,.09)'}}>✓</button>
+              style={{width:66,height:66,borderRadius:'50%',border:'2.5px solid #1C1C1E',background:'#fff',fontSize:26,cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',color:'#1C1C1E',boxShadow:'0 2px 10px rgba(0,0,0,.09)'}}><Icon name="check" size={27}/></button>
             <button onClick={()=>mN(ciR.current,tasks)} title="Skip task" aria-label="Skip task"
               style={{width:50,height:50,borderRadius:'50%',border:'1.5px solid #E0E0E0',background:'#fff',fontSize:17,cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',color:'#8E8E93',boxShadow:'0 1px 6px rgba(0,0,0,.06)'}}>
-              ⏭
+              <Icon name="player-skip-forward-filled" size={18}/>
             </button>
           </div>
 
@@ -352,7 +376,7 @@ function App(){
           <div style={{margin:'auto 20px 0',marginTop:'auto'}}>
             <div style={{background:'#F2F2F7',borderRadius:16,padding:'12px 20px',display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:10}}>
               <button onClick={()=>setMuted(m=>!m)} title={muted?"Unmute timer":"Mute timer"} aria-label={muted?"Unmute timer":"Mute timer"} style={{background:'none',border:'none',cursor:'pointer',fontSize:18,color:'#8E8E93',padding:0,display:'flex',alignItems:'center'}}>
-                {muted?'🔇':'🔔'}
+                <Icon name={muted?'volume-off':'bell'} size={19}/>
               </button>
               <span style={{fontSize:13,color:'#8E8E93'}}>
                 All ends: <span style={{color:'#1a1a1a',fontWeight:600}}>{allEnds}</span>
@@ -431,6 +455,6 @@ function App(){
 
 ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
 </script>
-<script src="../app-guard.js"></script>
+<script src="../../app-guard.js"></script>
 </body>
 </html>

@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#151714">
+  <meta name="description" content="Oracle - công cụ trải bài Tarot để soi chiếu và ghi lại suy nghĩ.">
+  <title>Oracle</title>
+  <link rel="icon" href="../../assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="../../assets/vendor/tabler/tabler-icons.min.css">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <a class="hub-back" href="../../index.html" aria-label="Trở về trang chủ">
+    <i class="ti ti-chevron-left" aria-hidden="true"></i>
+    <span>Trở về</span>
+  </a>
+
+  <main class="shell">
+    <header class="app-header">
+      <p class="eyebrow">REFLECTION TOOL</p>
+      <h1>Oracle</h1>
+      <p>Dùng hình ảnh và biểu tượng để đặt câu hỏi tốt hơn. Không thay thế quyết định của bạn.</p>
+    </header>
+
+    <section class="workspace" aria-labelledby="newReadingTitle">
+      <form id="readingForm" class="reading-form">
+        <div class="section-heading">
+          <p class="eyebrow">NEW READING</p>
+          <h2 id="newReadingTitle">Bắt đầu lượt trải</h2>
+        </div>
+
+        <label for="question">Câu hỏi hoặc chủ đề</label>
+        <textarea id="question" rows="3" maxlength="240" placeholder="Điều gì đang cần được nhìn rõ hơn?"></textarea>
+
+        <label for="spread">Kiểu trải</label>
+        <select id="spread"></select>
+
+        <button class="primary-button" type="submit">
+          <i class="ti ti-sparkles" aria-hidden="true"></i>
+          Rút bài
+        </button>
+      </form>
+
+      <section id="result" class="result" aria-live="polite"></section>
+    </section>
+
+    <section class="history-panel" aria-labelledby="historyTitle">
+      <div class="section-heading row">
+        <div>
+          <p class="eyebrow">LOCAL HISTORY</p>
+          <h2 id="historyTitle">Lịch sử gần đây</h2>
+        </div>
+        <button id="clearHistory" class="text-button" type="button">Xóa lịch sử</button>
+      </div>
+      <div id="history" class="history-list"></div>
+    </section>
+  </main>
+
+  <script type="module" src="app.js"></script>
+  <script src="../../app-guard.js"></script>
+</body>
+</html>
