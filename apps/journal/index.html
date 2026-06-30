@@ -302,10 +302,10 @@ body{display:flex;justify-content:center}
         <div class="nav-row">
           <div class="nav-title">Journal</div>
           <div style="display:flex;gap:2px">
-            <button class="icon-btn" onclick="openSearch()">
+            <button class="icon-btn" onclick="openSearch()" aria-label="Tìm kiếm" title="Tìm kiếm">
               <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
             </button>
-            <button class="icon-btn" onclick="toggleDark()">
+            <button class="icon-btn" onclick="toggleDark()" aria-label="Đổi giao diện sáng/tối" title="Đổi giao diện sáng/tối">
               <svg viewBox="0 0 24 24" id="darkIcon"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
             </button>
           </div>
@@ -325,7 +325,7 @@ body{display:flex;justify-content:center}
         <div class="search-input-wrap">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--t3)" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
           <input class="search-input" id="searchInput" placeholder="Tìm kiếm..." oninput="doSearch(this.value)" autocomplete="off">
-          <button class="search-cancel" onclick="closeSearch()">Huỷ</button>
+          <button class="search-cancel" onclick="closeSearch()" aria-label="Huỷ tìm kiếm" title="Huỷ tìm kiếm">Huỷ</button>
         </div>
         <div class="search-sep"></div>
       </div>
@@ -337,15 +337,15 @@ body{display:flex;justify-content:center}
     <!-- ══ EDITOR ══ -->
     <div class="view" id="v-editor">
       <div class="ednav">
-        <button class="edbtn" onclick="closeEditor()">
+        <button class="edbtn" onclick="closeEditor()" aria-label="Đóng editor" title="Đóng editor">
           <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
           <span class="edbtn-txt">Journal</span>
         </button>
         <div class="edbtngrp">
-          <button class="edbtn" onclick="toggleMood()">
+          <button class="edbtn" onclick="toggleMood()" aria-label="Thêm tâm trạng" title="Thêm tâm trạng">
             <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><circle cx="9" cy="9" r="1" fill="currentColor" stroke="none"/><circle cx="15" cy="9" r="1" fill="currentColor" stroke="none"/></svg>
           </button>
-          <button class="edbtn" onclick="openDeleteModal()">
+          <button class="edbtn" onclick="openDeleteModal()" aria-label="Xóa nhật ký" title="Xóa nhật ký">
             <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
           </button>
         </div>
@@ -365,13 +365,13 @@ body{display:flex;justify-content:center}
       </div>
       <div class="wcount" id="wcount">0 từ</div>
       <div class="kbtool">
-        <button class="kbbtn"><svg viewBox="0 0 24 24"><path d="M6 4h8a4 4 0 0 1 0 8H6z"/><path d="M6 12h9a4 4 0 0 1 0 8H6z"/></svg></button>
-        <button class="kbbtn"><svg viewBox="0 0 24 24"><line x1="19" y1="4" x2="10" y2="4"/><line x1="14" y1="20" x2="5" y2="20"/><line x1="15" y1="4" x2="9" y2="20"/></svg></button>
+        <button class="kbbtn" aria-label="Định dạng văn bản: Heading" title="Định dạng văn bản: Heading"><svg viewBox="0 0 24 24"><path d="M6 4h8a4 4 0 0 1 0 8H6z"/><path d="M6 12h9a4 4 0 0 1 0 8H6z"/></svg></button>
+        <button class="kbbtn" aria-label="Định dạng văn bản: In nghiêng" title="Định dạng văn bản: In nghiêng"><svg viewBox="0 0 24 24"><line x1="19" y1="4" x2="10" y2="4"/><line x1="14" y1="20" x2="5" y2="20"/><line x1="15" y1="4" x2="9" y2="20"/></svg></button>
         <div class="kbsep"></div>
-        <button class="kbbtn"><svg viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><circle cx="3" cy="6" r="1.2" fill="currentColor" stroke="none"/><circle cx="3" cy="12" r="1.2" fill="currentColor" stroke="none"/><circle cx="3" cy="18" r="1.2" fill="currentColor" stroke="none"/></svg></button>
-        <button class="kbbtn" onclick="insertPrompt()"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><circle cx="12" cy="17" r="1" fill="currentColor" stroke="none"/></svg></button>
+        <button class="kbbtn" aria-label="Chèn danh sách" title="Chèn danh sách"><svg viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><circle cx="3" cy="6" r="1.2" fill="currentColor" stroke="none"/><circle cx="3" cy="12" r="1.2" fill="currentColor" stroke="none"/><circle cx="3" cy="18" r="1.2" fill="currentColor" stroke="none"/></svg></button>
+        <button class="kbbtn" onclick="insertPrompt()" aria-label="Chèn câu hỏi gợi ý" title="Chèn câu hỏi gợi ý"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><circle cx="12" cy="17" r="1" fill="currentColor" stroke="none"/></svg></button>
         <div class="kbsp"></div>
-        <button class="kbdone" onclick="closeEditor()">Xong</button>
+        <button class="kbdone" onclick="closeEditor()" aria-label="Xong" title="Xong">Xong</button>
       </div>
     </div>
 
