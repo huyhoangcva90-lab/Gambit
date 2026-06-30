@@ -1,63 +1,108 @@
-<!DOCTYPE html>
+﻿<!doctype html>
 <html lang="vi">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <meta name="theme-color" content="#151714">
-  <meta name="description" content="Oracle - công cụ trải bài Tarot để soi chiếu và ghi lại suy nghĩ.">
-  <title>Oracle</title>
-  <link rel="icon" href="../../assets/favicon.svg" type="image/svg+xml">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#080711">
+  <title>Oracle — Rút một lá bài</title>
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <link rel="icon" type="image/png" href="icon.png">
   <link rel="stylesheet" href="../../assets/vendor/tabler/tabler-icons.min.css">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <a class="hub-back" href="../../index.html" aria-label="Trở về trang chủ">
-    <i class="ti ti-chevron-left" aria-hidden="true"></i>
-    <span>Trở về</span>
-  </a>
+  <div class="sky" aria-hidden="true"><span></span><span></span><span></span></div>
 
-  <main class="shell">
-    <header class="app-header">
-      <p class="eyebrow">REFLECTION TOOL</p>
-      <h1>Oracle</h1>
-      <p>Dùng hình ảnh và biểu tượng để đặt câu hỏi tốt hơn. Không thay thế quyết định của bạn.</p>
+  <main class="app-shell">
+    <header class="topbar">
+      <a class="icon-button" href="../../index.html" aria-label="Về Your Universe"><i class="ti ti-chevron-left"></i></a>
+      <div class="brand"><i class="ti ti-moon-stars"></i><span>ORACLE</span></div>
+      <button class="icon-button" id="resetButton" aria-label="Bắt đầu lại"><i class="ti ti-refresh"></i></button>
     </header>
 
-    <section class="workspace" aria-labelledby="newReadingTitle">
-      <form id="readingForm" class="reading-form">
-        <div class="section-heading">
-          <p class="eyebrow">NEW READING</p>
-          <h2 id="newReadingTitle">Bắt đầu lượt trải</h2>
-        </div>
+    <section class="screen is-active" id="startScreen" aria-labelledby="startTitle">
+      <div class="intro">
+        <p class="eyebrow">Một khoảng lặng dành cho bạn</p>
+        <h1 id="startTitle">Hôm nay, bạn muốn hỏi điều gì?</h1>
+        <p class="lede">Chọn một lối vào. Sau đó hãy để trực giác dẫn tay bạn đến lá bài.</p>
+      </div>
 
-        <label for="question">Câu hỏi hoặc chủ đề</label>
-        <textarea id="question" rows="3" maxlength="240" placeholder="Điều gì đang cần được nhìn rõ hơn?"></textarea>
-
-        <label for="spread">Kiểu trải</label>
-        <select id="spread"></select>
-
-        <button class="primary-button" type="submit">
-          <i class="ti ti-sparkles" aria-hidden="true"></i>
-          Rút bài
+      <div class="paths">
+        <button class="path path-featured" data-mode="daily">
+          <span class="path-icon"><i class="ti ti-sun"></i></span>
+          <span class="path-copy"><strong>Thông điệp hôm nay</strong><small>Một lá cho năng lượng hiện tại</small></span>
+          <i class="ti ti-arrow-up-right path-arrow"></i>
         </button>
-      </form>
-
-      <section id="result" class="result" aria-live="polite"></section>
+        <button class="path" data-mode="topic">
+          <span class="path-icon"><i class="ti ti-category"></i></span>
+          <span class="path-copy"><strong>Chọn chủ đề</strong><small>Tình yêu, công việc, tài chính...</small></span>
+          <i class="ti ti-chevron-right path-arrow"></i>
+        </button>
+        <button class="path" data-mode="question">
+          <span class="path-icon"><i class="ti ti-message-circle-question"></i></span>
+          <span class="path-copy"><strong>Đặt một câu hỏi</strong><small>Giữ câu hỏi rõ ràng trong tâm trí</small></span>
+          <i class="ti ti-chevron-right path-arrow"></i>
+        </button>
+      </div>
+      <p class="disclaimer">Tarot là một công cụ chiêm nghiệm, không phải lời khẳng định chắc chắn về tương lai.</p>
     </section>
 
-    <section class="history-panel" aria-labelledby="historyTitle">
-      <div class="section-heading row">
-        <div>
-          <p class="eyebrow">LOCAL HISTORY</p>
-          <h2 id="historyTitle">Lịch sử gần đây</h2>
-        </div>
-        <button id="clearHistory" class="text-button" type="button">Xóa lịch sử</button>
+    <section class="screen" id="setupScreen" aria-labelledby="setupTitle">
+      <button class="text-back" id="setupBack"><i class="ti ti-arrow-left"></i> Quay lại</button>
+      <p class="eyebrow" id="setupEyebrow">Chọn chủ đề</p>
+      <h2 id="setupTitle">Điều gì đang gọi bạn?</h2>
+
+      <div id="topicPicker" class="topic-grid">
+        <button data-topic="Tình yêu"><i class="ti ti-heart"></i><span>Tình yêu</span></button>
+        <button data-topic="Công việc"><i class="ti ti-briefcase"></i><span>Công việc</span></button>
+        <button data-topic="Tài chính"><i class="ti ti-wallet"></i><span>Tài chính</span></button>
+        <button data-topic="Gia đình"><i class="ti ti-home-heart"></i><span>Gia đình</span></button>
+        <button data-topic="Bản thân"><i class="ti ti-sparkles"></i><span>Bản thân</span></button>
+        <button data-topic="Một quyết định"><i class="ti ti-route"></i><span>Quyết định</span></button>
       </div>
-      <div id="history" class="history-list"></div>
+
+      <form id="questionForm" class="question-form" hidden>
+        <label for="questionInput">Câu hỏi của bạn</label>
+        <textarea id="questionInput" maxlength="160" rows="4" placeholder="Ví dụ: Mình cần nhìn rõ điều gì trong mối quan hệ này?"></textarea>
+        <div class="field-meta"><span>Hỏi mở sẽ cho lời gợi ý sâu hơn</span><span id="charCount">0/160</span></div>
+        <button class="primary-button" type="submit">Tiếp tục <i class="ti ti-arrow-right"></i></button>
+      </form>
+    </section>
+
+    <section class="screen draw-screen" id="drawScreen" aria-labelledby="drawTitle">
+      <p class="eyebrow" id="drawContext">Thông điệp hôm nay</p>
+      <h2 id="drawTitle">Hít một hơi thật chậm</h2>
+      <p class="draw-hint" id="drawHint">Chạm để xào bài, rồi chọn lá khiến bạn chú ý nhất.</p>
+
+      <div class="ritual" id="ritual">
+        <div class="deck" id="deck" role="button" tabindex="0" aria-label="Xào bộ bài">
+          <div class="card-back ghost ghost-two"></div>
+          <div class="card-back ghost ghost-one"></div>
+          <div class="card-back deck-top"></div>
+        </div>
+        <div class="fan" id="fan" aria-label="Chọn một lá bài"></div>
+      </div>
+
+      <button class="shuffle-button" id="shuffleButton"><i class="ti ti-arrows-shuffle"></i><span>Xào bài</span></button>
+    </section>
+
+    <section class="screen result-screen" id="resultScreen" aria-labelledby="resultTitle">
+      <p class="eyebrow" id="resultContext">Thông điệp hôm nay</p>
+      <h2 id="resultTitle">Lá bài tìm đến bạn</h2>
+
+      <div class="result-cards" id="resultCards"></div>
+      <p class="flip-note" id="flipNote">Lật từng lá bài để mở thông điệp</p>
+      <article class="reading" id="reading" aria-live="polite">
+        <div class="reading-label"><span></span> Lời nhắn dành cho bạn <span></span></div>
+        <div class="card-readings" id="cardReadings"></div>
+        <p class="reading-summary" id="readingText"></p>
+        <div class="reflection"><i class="ti ti-sparkles"></i><p id="reflectionText"></p></div>
+        <button class="primary-button" id="newReading">Bắt đầu lượt mới <i class="ti ti-refresh"></i></button>
+      </article>
     </section>
   </main>
 
-  <script type="module" src="app.js"></script>
   <script src="../../app-guard.js"></script>
+  <script src="app.js"></script>
 </body>
 </html>

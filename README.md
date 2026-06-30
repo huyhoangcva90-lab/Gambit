@@ -70,16 +70,15 @@ Một số tính năng dùng API trình duyệt hoặc module JavaScript hoạt 
 
 ## Oracle mới
 
-Oracle cũ và toàn bộ engine liên quan đã được loại bỏ. Phiên bản mới hiện tập trung vào một luồng Tarot rõ ràng:
+Oracle cũ và toàn bộ engine liên quan đã được loại bỏ. Phiên bản mới tập trung vào một trải nghiệm Tarot một lá rõ ràng:
 
-- Bộ Major Arcana gồm 22 lá.
-- Bốn kiểu trải: một lá, ba lá, quyết định và năm lá.
+- Ba lối vào: thông điệp hôm nay, chọn chủ đề hoặc đặt câu hỏi tự do.
+- Bộ Major Arcana gồm 22 lá, hiện dùng số, tên và biểu tượng thay cho ảnh.
+- Hiệu ứng xào bài, quạt bài, chọn lá và lật bài 3D.
 - Trộn bài bằng Web Crypto khi trình duyệt hỗ trợ.
-- Lá xuôi/ngược và thông điệp theo từng vị trí.
-- Lưu tối đa 50 lượt trải trên thiết bị.
-- Đánh dấu lá yêu thích.
-- Có fallback khi ảnh chưa hoàn thiện.
+- Có lá xuôi/ngược và lời gợi ý chiêm nghiệm bằng tiếng Việt.
+- Hoạt động trực tiếp trên trình duyệt, không cần tài khoản.
 
-Ảnh lá bài được đặt tại `apps/oracle/assets/cards/`. Xem quy ước tên file trong README của thư mục đó.
+Ảnh lá bài có thể được bổ sung sau mà không cần thay đổi luồng rút bài hiện tại.
 
 Oracle được thiết kế như công cụ phản tư, không phải nguồn dự đoán chắc chắn và không thay thế tư vấn y tế, pháp lý hoặc tài chính.
