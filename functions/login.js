@@ -18,7 +18,7 @@ const LOGIN_PAGE = `<!doctype html>
   <main>
     <div class="mark">G</div>
     <h1>Gambit</h1>
-    <p>Khong gian rieng cua ban. Dang nhap mot lan, thiet bi nay se duoc ghi nho trong 30 ngay.</p>
+    <p>Khong gian rieng cua ban. Dang nhap mot lan, thiet bi nay se duoc ghi nho trong 1 nam.</p>
     <form id="form">
       <label for="password">Mat khau</label>
       <input id="password" name="password" type="password" autocomplete="current-password" autofocus required>

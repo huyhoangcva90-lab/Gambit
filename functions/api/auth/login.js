@@ -1,5 +1,5 @@
 const COOKIE_NAME = "gambit_session";
-const SESSION_SECONDS = 60 * 60 * 24 * 30;
+const SESSION_SECONDS = 60 * 60 * 24 * 365;
 const encoder = new TextEncoder();
 
 function bytesToBase64Url(bytes) {
