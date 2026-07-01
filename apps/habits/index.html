@@ -141,6 +141,16 @@ body{display:flex;justify-content:center}
 .set-ico i{font-size:16px}
 .set-lbl{flex:1;font-size:15px;color:#000}
 .set-val{font-size:13px;color:rgba(60,60,67,.5);margin-right:6px}
+.sync-summary{margin:0 16px 12px;padding:14px;background:#fff;border-radius:16px}
+.sync-summary-top{display:flex;align-items:center;gap:9px;margin-bottom:12px}
+.sync-summary-dot{width:9px;height:9px;border-radius:50%;background:#C7C7CC;box-shadow:0 0 0 4px rgba(199,199,204,.18)}
+.sync-summary-dot.ok{background:#34C759;box-shadow:0 0 0 4px rgba(52,199,89,.14)}
+.sync-summary-title{font-size:15px;font-weight:650;color:#000}
+.sync-summary-sub{font-size:12px;color:rgba(60,60,67,.5);margin-top:2px}
+.sync-summary-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.sync-summary-item{padding:10px;background:#F7F7F9;border-radius:10px;min-width:0}
+.sync-summary-label{font-size:10px;font-weight:700;text-transform:uppercase;color:rgba(60,60,67,.45);margin-bottom:4px}
+.sync-summary-value{font-size:13px;font-weight:600;color:#111;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .toast{position:absolute;bottom:96px;left:50%;transform:translateX(-50%) translateY(12px);background:rgba(44,44,46,.97);color:#fff;padding:9px 18px;border-radius:22px;font-size:13px;font-weight:500;opacity:0;transition:all .25s;pointer-events:none;white-space:nowrap;z-index:999}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 </style>
@@ -214,7 +224,22 @@ body{display:flex;justify-content:center}
       <i class="ti ti-chevron-right" style="color:rgba(60,60,67,.3)"></i>
     </div>
   </div>
-  <div style="font-size:11px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:rgba(60,60,67,.5);padding:10px 20px 5px">Habits (17)</div>
+  <div class="sync-summary">
+    <div class="sync-summary-top">
+      <div class="sync-summary-dot" id="sync-summary-dot"></div>
+      <div>
+        <div class="sync-summary-title" id="sync-summary-title">Notion not connected</div>
+        <div class="sync-summary-sub" id="sync-summary-sub">Start the Gambit server to sync</div>
+      </div>
+    </div>
+    <div class="sync-summary-grid">
+      <div class="sync-summary-item"><div class="sync-summary-label">Daily</div><div class="sync-summary-value" id="sync-daily">Waiting</div></div>
+      <div class="sync-summary-item"><div class="sync-summary-label">Habits</div><div class="sync-summary-value" id="sync-habits">Waiting</div></div>
+      <div class="sync-summary-item"><div class="sync-summary-label">Sync mode</div><div class="sync-summary-value">Relation</div></div>
+      <div class="sync-summary-item"><div class="sync-summary-label">Completed</div><div class="sync-summary-value" id="sync-completed">0 today</div></div>
+    </div>
+  </div>
+  <div id="habits-count" style="font-size:11px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:rgba(60,60,67,.5);padding:10px 20px 5px">Habits</div>
   <div id="habits-cfg" style="margin:0 16px 12px;background:#fff;border-radius:16px;overflow:hidden"></div>
   <div style="height:40px"></div>
 </div>
@@ -237,9 +262,9 @@ body{display:flex;justify-content:center}
       <button class="sh-btn r" onclick="saveNotion()">Save</button>
     </div>
     <div class="n-st" id="n-st-card"><div class="n-dot" id="n-dot" style="width:8px;height:8px;border-radius:50%;background:#C7C7CC;flex-shrink:0"></div><span id="n-st-txt">Not connected</span></div>
-    <div class="n-info">App pulls your Daily database on every load. Ticking a habit pushes the change to Notion instantly.</div>
-    <div class="n-field"><label>Integration Token</label><input id="n-tok" type="password" placeholder="ntn_578555880387..."></div>
-    <div class="n-field"><label>Database ID</label><input id="n-db" type="text" placeholder="272d787636c6..."></div>
+    <div class="n-info">Habits are loaded from the Habits database. The local Gambit server keeps your Notion token outside the browser.</div>
+    <div class="n-field"><label>Daily Database ID</label><input id="n-db" type="text" placeholder="272d787636c6..."></div>
+    <div class="n-field"><label>Habits Database ID</label><input id="n-habits-db" type="text" placeholder="272d787636c6..."></div>
     <button class="n-btn" onclick="saveNotion()">Save &amp; Connect</button>
     <button class="n-btn ol" onclick="manualSync()">Pull from Notion now</button>
     <div style="height:20px"></div>
@@ -251,11 +276,11 @@ body{display:flex;justify-content:center}
 </div>
 
 <script>
-var TOK='';
-var DBID='';
+var DBID='272d787636c681c8b8adc9d6fdada0b7';
+var HABITS_DBID='272d787636c681a29bf8e4d5e588e173';
 var SK='dhv2';
 
-var HABITS=[
+var FALLBACK_HABITS=[
   {k:'Gym',       l:'Gym',            e:'🏋️', g:'Fitness'},
   {k:'Yoga',      l:'Yoga',           e:'🧘', g:'Fitness'},
   {k:'Wake up early',l:'Wake up early',e:'🌅',g:'Routine'},
@@ -274,32 +299,43 @@ var HABITS=[
   {k:'Fashion',   l:'Fashion',        e:'👗', g:'Lifestyle'},
   {k:'Economy',   l:'Economy',        e:'💰', g:'Lifestyle'},
 ];
+var HABITS=FALLBACK_HABITS.slice();
 var MOODS=['😢','😴','😰','😡','🌿','😀','🤩'];
 var MOOD_LABELS=['😢 Sad','😴 Tired','😰 Anxious','😡 Angry','🌿 Calm','😀 Happy','🤩 Excited'];
 var ENERGY=['⚡︎','⚡','⚡⚡','⚡⚡⚡'];
 
-var D={notion:{tok:TOK,dbId:DBID,ok:false},days:{},viewDate:todayStr()};
+var D={notion:{dbId:DBID,habitsDbId:HABITS_DBID,ok:false},days:{},viewDate:todayStr()};
 
 function todayStr(){var n=new Date();return n.getFullYear()+'-'+pad(n.getMonth()+1)+'-'+pad(n.getDate());}
 function pad(n){return n<10?'0'+n:String(n);}
 function dateStr(d){return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());}
 function uid(){return'r'+Date.now();}
 function save(){try{localStorage.setItem(SK,JSON.stringify(D));}catch(e){}}
-function loadS(){try{var s=localStorage.getItem(SK);if(s){var p=JSON.parse(s);if(p.days)D.days=p.days;if(p.notion&&p.notion.tok)D.notion=p.notion;}}catch(e){}}
+function loadS(){
+  try{
+    var s=localStorage.getItem(SK);
+    if(s){
+      var p=JSON.parse(s);
+      if(p.days)D.days=p.days;
+      if(p.notion)D.notion=Object.assign(D.notion,p.notion);
+    }
+  }catch(e){}
+  if(!D.notion.dbId)D.notion.dbId=DBID;
+  if(!D.notion.habitsDbId)D.notion.habitsDbId=HABITS_DBID;
+}
 function getDay(ds){if(!D.days[ds])D.days[ds]={pageId:null,habits:{},mood:'',energy:'',prod:0};return D.days[ds];}
 
 function init(){
   loadS();
   var tick=function(){var t=new Date();document.getElementById('sbt').textContent=t.getHours()+':'+(t.getMinutes()<10?'0':'')+t.getMinutes();};
   tick();setInterval(tick,15000);
-  buildHabitsCfg();
   // Load sample data first so UI shows immediately
   loadSampleData();
   // Then try Notion
   document.getElementById('loading').classList.remove('hide');
   pullNotion(function(ok){
     document.getElementById('loading').classList.add('hide');
-    D.notion.ok=ok;save();updateSyncUI();
+    D.notion.ok=ok;save();updateSyncUI();buildHabitsCfg();
     showPages();renderAll();
     if(ok)toast('Synced from Notion \u2713');
     else toast('Showing sample data \u2014 connect Notion in Settings');
@@ -329,6 +365,25 @@ function loadSampleData(){
   save();
 }
 
+function habitVisual(name,type){
+  var n=(name||'').toLowerCase();
+  var icon='✓';
+  if(n.indexOf('facebook')>=0)icon='f';
+  else if(n.indexOf('tiktok')>=0)icon='♪';
+  else if(n.indexOf('youtube')>=0)icon='▶';
+  else if(n.indexOf('game')>=0)icon='🎮';
+  else if(n.indexOf('wake')>=0)icon='🌅';
+  else if(n.indexOf('sleep')>=0)icon='😴';
+  else if(n.indexOf('deep work')>=0)icon='🎯';
+  else if(n.indexOf('anh')>=0||n.indexOf('english')>=0)icon='📖';
+  else if(n.indexOf('gym')>=0||n.indexOf('straight')>=0)icon='🏋️';
+  else if(n.indexOf('fashion')>=0)icon='👗';
+  else if(n.indexOf('economy')>=0)icon='💰';
+  else if(n.indexOf('skincare')>=0)icon='✨';
+  else if(n.indexOf('yoga')>=0)icon='🧘';
+  return{e:icon,g:type==='Bad Habbit'?'Digital limits':'Good habits'};
+}
+
 function tab(i){
   ['tb0','tb1','tb2','tb3'].forEach(function(id,j){document.getElementById(id).classList.toggle('on',j===i);});
   ['pg-today','pg-stats','pg-history','pg-settings'].forEach(function(id,j){document.getElementById(id).classList.toggle('off',j!==i);});
@@ -348,7 +403,7 @@ function renderToday(){
   document.getElementById('today-s').textContent=d2.toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'});
   var day=getDay(ds);
   var done=HABITS.filter(function(h){return day.habits[h.k];}).length;
-  var pct=Math.round(done/HABITS.length*100);
+  var pct=HABITS.length?Math.round(done/HABITS.length*100):0;
   var b=document.getElementById('today-body');b.innerHTML='';
 
   // Progress ring
@@ -488,7 +543,7 @@ function renderStats(){
   for(var i=6;i>=0;i--){
     var d2=new Date();d2.setDate(d2.getDate()-i);var ds=dateStr(d2);
     var dayD=D.days[ds];var pct2=0;
-    if(dayD){var done2=HABITS.filter(function(h){return dayD.habits&&dayD.habits[h.k];}).length;pct2=Math.round(done2/HABITS.length*100);}
+    if(dayD&&HABITS.length){var done2=HABITS.filter(function(h){return dayD.habits&&dayD.habits[h.k];}).length;pct2=Math.round(done2/HABITS.length*100);}
     var cls=pct2>=80?'hi':pct2>=40?'med':'';
     var wd=document.createElement('div');wd.className='wday';
     wd.innerHTML='<div class="wday-l">'+d2.toLocaleDateString('en-GB',{weekday:'short'}).slice(0,2)+'</div>'
@@ -517,7 +572,7 @@ function renderHist(){
   if(!all.length){b.innerHTML='<div style="text-align:center;padding:60px 24px;color:rgba(60,60,67,.5);font-size:15px">No history yet</div>';return;}
   all.forEach(function(ds){
     var day=D.days[ds];var done=HABITS.filter(function(h){return day.habits&&day.habits[h.k];}).length;
-    var pct=Math.round(done/HABITS.length*100);
+    var pct=HABITS.length?Math.round(done/HABITS.length*100):0;
     var RS=42,ST=4,r=RS/2-ST/2-1,C=2*Math.PI*r,dash=pct/100*C;
     var card=document.createElement('div');card.className='hist-card';
     card.onclick=function(){D.viewDate=ds;tab(0);renderToday();};
@@ -536,10 +591,20 @@ function renderHist(){
 }
 
 function renderSettings(){
-  var v=document.getElementById('set-nval');if(v)v.textContent=D.notion.ok?'Connected':'Not connected';
+  var ok=D.notion.ok;
+  var v=document.getElementById('set-nval');if(v)v.textContent=ok?'Connected · '+HABITS.length:'Not connected';
+  var dot=document.getElementById('sync-summary-dot');if(dot)dot.className='sync-summary-dot'+(ok?' ok':'');
+  var title=document.getElementById('sync-summary-title');if(title)title.textContent=ok?'Notion connected':'Notion not connected';
+  var sub=document.getElementById('sync-summary-sub');if(sub)sub.textContent=ok?'Daily and Habits are syncing':'Start the Gambit server to sync';
+  var daily=document.getElementById('sync-daily');if(daily)daily.textContent=ok?'Connected':'Waiting';
+  var habits=document.getElementById('sync-habits');if(habits)habits.textContent=ok?HABITS.length+' records':'Waiting';
+  var today=getDay(todayStr());
+  var done=HABITS.filter(function(h){return today.habits&&today.habits[h.k];}).length;
+  var completed=document.getElementById('sync-completed');if(completed)completed.textContent=done+' today';
 }
 function buildHabitsCfg(){
   var list=document.getElementById('habits-cfg');if(!list)return;list.innerHTML='';
+  var count=document.getElementById('habits-count');if(count)count.textContent='Habits ('+HABITS.length+')';
   HABITS.forEach(function(h,i){
     var row=document.createElement('div');
     row.style.cssText='display:flex;align-items:center;padding:10px 14px;border-bottom:'+(i<HABITS.length-1?'.5px solid rgba(60,60,67,.08)':'none');
@@ -556,6 +621,33 @@ function updateSyncUI(){
 }
 
 function pullNotion(cb){
+  pullHabits(function(){
+    pullDaily(cb);
+  });
+}
+
+function pullHabits(cb){
+  nFetch('POST','https://api.notion.com/v1/databases/'+D.notion.habitsDbId+'/query',
+    {page_size:100},
+    function(ok,data){
+      if(ok){
+        var dynamic=(data.results||[]).map(function(page){
+          var p=page.properties||{};
+          var titleProp=Object.keys(p).map(function(k){return p[k];}).find(function(v){return v&&v.type==='title';});
+          var name=titleProp&&titleProp.title?(titleProp.title.map(function(x){return x.plain_text||'';}).join('')):'';
+          var type=p['Type']&&p['Type'].select?p['Type'].select.name:'';
+          var visual=habitVisual(name,type);
+          return{k:page.id,l:name||'Untitled habit',e:visual.e,g:visual.g};
+        }).filter(function(h){return h.l;});
+        if(dynamic.length)HABITS=dynamic;
+      }
+      buildHabitsCfg();
+      if(cb)cb(ok);
+    }
+  );
+}
+
+function pullDaily(cb){
   nFetch('POST','https://api.notion.com/v1/databases/'+D.notion.dbId+'/query',
     {page_size:30,sorts:[{property:'Date',direction:'descending'}]},
     function(ok,data){
@@ -564,8 +656,9 @@ function pullNotion(cb){
           var p=page.properties||{};
           var dobj=p['Date']&&p['Date'].date;var ds=dobj&&dobj.start?dobj.start.split('T')[0]:null;
           if(!ds)return;
-          var day=getDay(ds);day.pageId=page.id;
-          HABITS.forEach(function(h){if(p[h.k])day.habits[h.k]=p[h.k].checkbox||false;});
+          var day=getDay(ds);day.pageId=page.id;day.habits={};
+          var completed=p['Habits']&&p['Habits'].relation?p['Habits'].relation:[];
+          completed.forEach(function(rel){day.habits[rel.id]=true;});
           if(p['Mood']&&p['Mood'].select)day.mood=p['Mood'].select.name||'';
           if(p['Energy']&&p['Energy'].select)day.energy=p['Energy'].select.name||'';
           if(p['Productivion']&&p['Productivion'].select)day.prod=parseInt(p['Productivion'].select.name)||0;
@@ -580,7 +673,7 @@ function pullNotion(cb){
 function pushNotion(ds){
   if(!D.notion.ok)return;
   var day=getDay(ds);var props={};
-  HABITS.forEach(function(h){props[h.k]={checkbox:day.habits[h.k]||false};});
+  props['Habits']={relation:HABITS.filter(function(h){return day.habits[h.k];}).map(function(h){return{id:h.k};})};
   if(day.mood)props['Mood']={select:{name:day.mood}};
   if(day.energy)props['Energy']={select:{name:day.energy}};
   if(day.prod)props['Productivion']={select:{name:String(day.prod)}};
@@ -599,8 +692,8 @@ function manualSync(){
   pullNotion(function(ok){D.notion.ok=ok;save();updateSyncUI();renderAll();toast(ok?'Synced \u2713':'Connection failed');});
 }
 function openNotion(){
-  document.getElementById('n-tok').value=D.notion.tok||'';
   document.getElementById('n-db').value=D.notion.dbId||'';
+  document.getElementById('n-habits-db').value=D.notion.habitsDbId||'';
   var ok=D.notion.ok;
   document.getElementById('n-dot').style.background=ok?'#34C759':'#C7C7CC';
   document.getElementById('n-st-txt').textContent=ok?'Connected \u2713':'Not connected';
@@ -608,14 +701,19 @@ function openNotion(){
   openOv('ov-notion');
 }
 function saveNotion(){
-  var tok=document.getElementById('n-tok').value.trim();var db=document.getElementById('n-db').value.trim().replace(/-/g,'');
-  if(!tok||!db){toast('Enter token and DB ID');return;}
-  D.notion.tok=tok;D.notion.dbId=db;save();toast('Connecting...');closeOv('ov-notion');manualSync();
+  var db=document.getElementById('n-db').value.trim().replace(/-/g,'');
+  var habitsDb=document.getElementById('n-habits-db').value.trim().replace(/-/g,'');
+  if(!db||!habitsDb){toast('Enter both database IDs');return;}
+  D.notion.dbId=db;D.notion.habitsDbId=habitsDb;
+  save();toast('Connecting...');closeOv('ov-notion');manualSync();
 }
 function nFetch(method,url,body,cb){
-  var opts={method:method,headers:{'Authorization':'Bearer '+D.notion.tok,'Notion-Version':'2022-06-28'}};
+  var notionPath=url.replace('https://api.notion.com','');
+  var opts={method:method,headers:{}};
   if(body){opts.headers['Content-Type']='application/json';opts.body=JSON.stringify(body);}
-  fetch(url,opts).then(function(r){r.json().then(function(d){cb(r.ok,d);}).catch(function(){cb(r.ok,{});});}).catch(function(){cb(false,{});});
+  fetch('/api/notion?path='+encodeURIComponent(notionPath),opts)
+    .then(function(r){r.json().then(function(d){cb(r.ok,d);}).catch(function(){cb(r.ok,{});});})
+    .catch(function(){cb(false,{});});
 }
 function openOv(id){document.getElementById(id).classList.add('open');}
 function closeOv(id){document.getElementById(id).classList.remove('open');}

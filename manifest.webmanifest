@@ -1,0 +1,17 @@
+{
+  "name": "Gambit",
+  "short_name": "Gambit",
+  "description": "Personal dashboard and habit tracker",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#07070f",
+  "theme_color": "#07070f",
+  "icons": [
+    {
+      "src": "apps/habits/icon.png",
+      "sizes": "1024x1024",
+      "type": "image/png"
+    }
+  ]
+}

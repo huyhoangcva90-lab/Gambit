@@ -50,17 +50,34 @@
     Queens: ['Nữ Hoàng','QUEEN','Sự trưởng thành nằm ở khả năng làm chủ thế giới bên trong và nuôi dưỡng điều có ý nghĩa.','Bạn có thể tin vào phẩm chất nào của mình?'],
     Kings: ['Quốc Vương','KING','Đây là lời gọi bước vào vai trò chủ động, có trách nhiệm và nhìn xa hơn cảm xúc nhất thời.','Bạn cần lãnh đạo phần nào trong cuộc sống?']
   };
+  const sourceCards = Array.isArray(window.TAROT_SOURCE_CARDS) ? window.TAROT_SOURCE_CARDS : [];
+  const rankNames = { 1:'ACE', 2:'TWO', 3:'THREE', 4:'FOUR', 5:'FIVE', 6:'SIX', 7:'SEVEN', 8:'EIGHT', 9:'NINE', 10:'TEN' };
+  function getSourceCard(card) {
+    const key = card.kind === 'minor'
+      ? `${rankNames[card.rank]} OF ${suitInfo[card.suit].en}`
+      : card.english;
+    return sourceCards.find((item) => item.key === key || item.key.includes(key));
+  }
+  function enrichCard(card) {
+    const source = getSourceCard(card);
+    if (!source) return card;
+    return {
+      ...card,
+      meaning: source.upright || source.overview || card.meaning,
+      reversedMeaning: source.reversed || '',
+      sourceUrl: source.sourceUrl
+    };
+  }
   function buildDeck() {
-    const major = cards.map((card,index) => ({ number:card[0], name:card[1], english:englishNames[index], icon:card[2], meaning:card[3], reflection:card[4], image:`${index}.png` }));
+    const major = cards.map((card,index) => ({ kind:'major', number:card[0], name:card[1], english:englishNames[index], icon:card[2], meaning:card[3], reflection:card[4], image:`${index}.png` }));
     const minor = [];
     Object.entries(suitInfo).forEach(([key,suit]) => {
       for (let rank=1; rank<=10; rank++) {
-        if (key === 'gay' && rank === 2) continue;
-        minor.push({ number:String(rank), name:`${rank} ${suit.vi}`, english:`${rank} OF ${suit.en}`, icon:suit.icon, meaning:`Trong lĩnh vực ${suit.focus}, ${rankThemes[rank][0].toLowerCase()}`, reflection:rankThemes[rank][1], image:suit.files(rank) });
+        minor.push({ kind:'minor', suit:key, rank, number:String(rank), name:`${rank} ${suit.vi}`, english:`${rank} OF ${suit.en}`, icon:suit.icon, meaning:`Trong lĩnh vực ${suit.focus}, ${rankThemes[rank][0].toLowerCase()}`, reflection:rankThemes[rank][1], image:suit.files(rank) });
       }
-      Object.entries(courtInfo).forEach(([file,[vi,en,meaning,reflection]]) => minor.push({ number:en, name:`${vi} ${suit.vi}`, english:`${en} OF ${suit.en}`, icon:suit.icon, meaning:`Liên quan đến ${suit.focus}: ${meaning}`, reflection, image:`${file} ${key}.png` }));
+      Object.entries(courtInfo).forEach(([file,[vi,en,meaning,reflection]]) => minor.push({ kind:'court', suit:key, rank:en, number:en, name:`${vi} ${suit.vi}`, english:`${en} OF ${suit.en}`, icon:suit.icon, meaning:`Liên quan đến ${suit.focus}: ${meaning}`, reflection, image:`${file} ${key}.png` }));
     });
-    return major.concat(minor);
+    return major.concat(minor).map(enrichCard);
   }
   const fullDeck = buildDeck();
   const screens = ['startScreen','setupScreen','drawScreen','resultScreen'];
@@ -79,6 +96,7 @@
       : state.mode === 'topic'
         ? ['Hiện trạng','Điều đang ẩn','Hướng đi']
         : ['Cốt lõi câu hỏi','Điều cần biết','Lời khuyên'];
+    renderDrawProgress();
     $('drawContext').textContent = context; $('resultContext').textContent = context;
     $('fan').innerHTML = ''; $('deck').hidden = false; $('deck').classList.remove('is-shuffling'); $('shuffleButton').hidden = false; $('shuffleButton').disabled = false;
     $('drawTitle').textContent = 'Hít một hơi thật chậm'; $('drawHint').textContent = 'Chạm để xào bài, rồi chọn lá khiến bạn chú ý nhất.';
@@ -119,8 +137,10 @@
   }
   $('deck').addEventListener('click', shuffle); $('deck').addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); shuffle(); }}); $('shuffleButton').addEventListener('click', shuffle);
   function chooseCard(button) {
+    const selectionIndex = state.selected.length;
     button.disabled = true; button.classList.add('is-chosen');
     createSelectionBurst();
+    animateCardToSlot(button, selectionIndex);
     let drawn;
     do { drawn = fullDeck[secureRandom(fullDeck.length)]; } while (state.selected.some((item) => item.card.image === drawn.image));
     state.selected.push({ card:drawn, reversed:secureRandom(100) < 28 });
@@ -135,6 +155,31 @@
         $('drawHint').textContent = `${state.selected.length}/${state.targetCount} lá đã chọn`;
       }
     }, 420);
+  }
+  function renderDrawProgress() {
+    $('drawProgress').innerHTML = state.positions.map((position,index) =>
+      `<div class="draw-slot" data-slot="${index}"><span class="slot-card"></span><small>${position}</small></div>`
+    ).join('');
+    $('drawProgress').classList.toggle('is-single', state.targetCount === 1);
+  }
+  function animateCardToSlot(button,index) {
+    const slot = document.querySelector(`[data-slot="${index}"] .slot-card`);
+    if (!slot) return;
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduceMotion) { slot.parentElement.classList.add('is-filled'); return; }
+    const from = button.getBoundingClientRect(); const to = slot.getBoundingClientRect();
+    const flyer = document.createElement('span'); flyer.className = 'flying-card';
+    flyer.style.cssText = `left:${from.left}px;top:${from.top}px;width:${from.width}px;height:${from.height}px`;
+    document.body.appendChild(flyer);
+    const dx = to.left + to.width / 2 - (from.left + from.width / 2);
+    const dy = to.top + to.height / 2 - (from.top + from.height / 2);
+    const scale = Math.max(.2, to.width / from.width);
+    const motion = flyer.animate([
+      { transform:'translate3d(0,0,0) rotate(0deg) scale(1)', opacity:1 },
+      { transform:`translate3d(${dx * .45}px,${dy * .25 - 42}px,0) rotate(-5deg) scale(.92)`, opacity:1, offset:.45 },
+      { transform:`translate3d(${dx}px,${dy}px,0) rotate(0deg) scale(${scale})`, opacity:.25 }
+    ], { duration:620, easing:'cubic-bezier(.16,1,.3,1)', fill:'forwards' });
+    motion.onfinish = () => { flyer.remove(); slot.parentElement.classList.add('is-filled'); };
   }
   function createSelectionBurst() {
     const burst = document.createElement('span'); burst.className = 'selection-burst';
@@ -181,15 +226,93 @@
     }, 740);
   }
   function buildReading() {
+    const domain = detectDomain();
     $('cardReadings').innerHTML = state.selected.map((selection,index) => {
       const prefix = selection.reversed ? 'Năng lượng này đang bị chặn, chậm lại hoặc hướng vào bên trong. ' : '';
-      return `<section class="card-reading"><small>${state.positions[index]}</small><strong>${selection.card.name} · ${selection.reversed ? 'Ngược' : 'Xuôi'}</strong><p>${prefix}${selection.card.meaning}</p></section>`;
+      const sourceMeaning = selection.reversed && selection.card.reversedMeaning
+        ? selection.card.reversedMeaning
+        : selection.card.meaning;
+      const sourceLink = selection.card.sourceUrl
+        ? `<a class="reading-source" href="${selection.card.sourceUrl}" target="_blank" rel="noopener noreferrer">Xem ý nghĩa đầy đủ <i class="ti ti-external-link"></i></a>`
+        : '';
+      const detail = createDetailedMeaning(selection.card, selection.reversed, state.positions[index], domain, index);
+      return `<section class="card-reading">
+        <small>${state.positions[index]}</small>
+        <strong>${selection.card.name} · ${selection.reversed ? 'Ngược' : 'Xuôi'}</strong>
+        <div class="reading-detail"><b>Thông điệp chính</b><p>${prefix}${sourceMeaning}</p>${sourceLink}</div>
+        <div class="reading-detail"><b>${domain.label}</b><p>${detail.domain}</p></div>
+        <div class="reading-detail"><b>Vai trò trong trải bài</b><p>${detail.position}</p></div>
+        <div class="reading-detail"><b>Điều nên làm</b><p>${detail.action}</p></div>
+      </section>`;
     }).join('');
     const names = state.selected.map((item) => item.card.name).join(', ');
     $('readingText').textContent = state.targetCount === 1
-      ? `Trọng tâm của hôm nay nằm ở ${state.selected[0].card.name}. Đừng xem đây là một kết luận cố định; hãy dùng nó để nhận ra điều bạn đang bỏ sót.`
-      : `Nhìn tổng thể, ${names} tạo thành một tiến trình: nhận diện điều đang diễn ra, nhìn phần chưa được nói ra, rồi chọn một hướng hành động có ý thức. Câu trả lời không nằm ở riêng từng lá mà ở cách ba thông điệp nối tiếp nhau.`;
-    $('reflectionText').textContent = state.selected[state.selected.length - 1].card.reflection;
+      ? `Trọng tâm hôm nay nằm ở ${state.selected[0].card.name}. Lá bài không đóng khung tương lai mà chỉ ra dòng năng lượng đang mạnh nhất: điều bạn cần nhìn, cách bạn đang phản ứng và khoảng tự do vẫn còn trong lựa chọn. Hãy quan sát xem thông điệp này xuất hiện ở đâu trong ngày thay vì cố buộc mọi sự kiện phải khớp với nó.`
+      : createSynthesis(names, domain);
+    $('reflectionText').textContent = `${state.selected[state.selected.length - 1].card.reflection} Hãy ghi lại câu trả lời đầu tiên xuất hiện, kể cả khi nó chưa hoàn chỉnh.`;
+  }
+  function detectDomain() {
+    const text = state.context.toLowerCase();
+    if (/tình|yêu|quan hệ|người ấy|crush|kết hôn|chia tay/.test(text)) return { key:'love', label:'Trong tình cảm' };
+    if (/tiền|tài chính|thu nhập|đầu tư|chi tiêu|nợ/.test(text)) return { key:'finance', label:'Trong tài chính' };
+    if (/việc|nghề|sự nghiệp|dự án|học|công ty|kinh doanh/.test(text)) return { key:'work', label:'Trong công việc' };
+    return { key:'general', label:'Trong hoàn cảnh hiện tại' };
+  }
+  function createDetailedMeaning(card,reversed,position,domain,index) {
+    const suit = card.suit || 'major';
+    const domainMap = {
+      love: {
+        gay:'Sức hút và đam mê đang cao, nhưng cần phân biệt giữa nhiệt thành bền vững với cảm giác muốn chinh phục. Hãy nhìn vào hành động nhất quán thay vì chỉ tin lời hứa hoặc khoảnh khắc mãnh liệt.',
+        ly:'Cảm xúc là trung tâm của câu chuyện. Sự chân thành, khả năng đón nhận và cách hai người nuôi dưỡng an toàn cảm xúc sẽ quyết định mối quan hệ tiến gần hay xa nhau.',
+        kiem:'Điều cần chữa là cách giao tiếp và những giả định chưa được kiểm chứng. Một cuộc nói chuyện rõ ràng có thể khó chịu lúc đầu nhưng tốt hơn việc để im lặng biến thành khoảng cách.',
+        xu:'Mối quan hệ cần được nhìn qua sự ổn định, trách nhiệm và những gì hai bên thực sự xây dựng cùng nhau. Tình cảm đẹp vẫn cần thời gian, sự hiện diện và cam kết cụ thể.',
+        major:'Đây là một bài học tình cảm có tính bước ngoặt. Mối quan hệ đang phản chiếu một phần quan trọng trong hành trình trưởng thành, buộc bạn chọn giữa lặp lại thói quen cũ và sống thật hơn.'
+      },
+      work: {
+        gay:'Động lực, tham vọng và tốc độ là điểm nổi bật. Cơ hội có thể đến khi bạn chủ động, nhưng cần một mục tiêu đủ rõ để năng lượng không bị tản ra vào quá nhiều hướng.',
+        ly:'Sự hài lòng, môi trường làm việc và kết nối con người quan trọng không kém thành tích. Hãy hỏi liệu công việc này có nuôi dưỡng giá trị của bạn hay chỉ khiến bạn bận rộn.',
+        kiem:'Đây là vấn đề của chiến lược, quyết định và trao đổi thông tin. Kiểm tra dữ kiện, nói rõ kỳ vọng và đừng để áp lực khiến bạn phản ứng trước khi hiểu toàn cảnh.',
+        xu:'Năng lực thực tế, thu nhập và quá trình tích lũy đang được nhấn mạnh. Tiến chậm nhưng chắc, hoàn thiện kỹ năng và giữ cam kết sẽ tạo kết quả đáng tin hơn đường tắt.',
+        major:'Một chuyển biến nghề nghiệp lớn hơn công việc thường ngày đang hình thành. Lá bài hỏi bạn muốn trở thành ai qua công việc, không chỉ muốn đạt được chức danh hay kết quả nào.'
+      },
+      finance: {
+        gay:'Tiền bạc liên quan đến một kế hoạch đang cần hành động và tầm nhìn. Tránh quyết định vì hưng phấn; hãy biến ý tưởng thành các bước có giới hạn rủi ro rõ ràng.',
+        ly:'Cảm xúc có thể đang ảnh hưởng đến cách chi tiêu hoặc đánh giá giá trị. Hãy tránh dùng tiền để bù đắp cảm giác thiếu thốn và ưu tiên lựa chọn mang lại sự đủ đầy lâu dài.',
+        kiem:'Cần đọc kỹ con số, điều khoản và giả định. Nỗi lo có thể giúp bạn thận trọng nhưng không nên trở thành lý do trì hoãn mọi quyết định hoặc chọn trong hoảng sợ.',
+        xu:'Đây là bộ bài gắn trực tiếp với nguồn lực vật chất. Hãy tập trung vào ngân sách, tích lũy, tài sản và những hành động nhỏ có thể lặp lại đều đặn.',
+        major:'Tài chính ở đây gắn với một bài học lớn về quyền tự chủ và giá trị cá nhân. Quyết định tốt là quyết định phù hợp với đường dài, không chỉ giải tỏa áp lực trong khoảnh khắc.'
+      },
+      general: {
+        gay:'Năng lượng muốn chuyển thành hành động. Điều quan trọng là chọn đúng hướng, giữ nhịp và để sự nhiệt thành phục vụ một mục tiêu có ý nghĩa.',
+        ly:'Thế giới cảm xúc đang cung cấp thông tin quan trọng. Hãy lắng nghe cảm giác nhưng cũng tạo đủ khoảng lặng để phân biệt trực giác với phản ứng nhất thời.',
+        kiem:'Tâm trí, lời nói và cách nhìn nhận đang quyết định trải nghiệm của bạn. Sự thật sẽ rõ hơn khi bạn tách dữ kiện khỏi câu chuyện mình đang tự kể.',
+        xu:'Hãy quay về điều cụ thể: cơ thể, thời gian, tiền bạc, trách nhiệm và môi trường sống. Một thay đổi nhỏ nhưng thực tế có thể hữu ích hơn một ý định lớn.',
+        major:'Bạn đang chạm vào một chủ đề lớn của hành trình cá nhân. Đây không chỉ là chuyện của hôm nay mà là cơ hội thay đổi cách bạn nhìn và lựa chọn trong một chu kỳ dài hơn.'
+      }
+    };
+    const positionTexts = [
+      `Ở vị trí “${position}”, ${card.name} mô tả nền năng lượng đang vận hành. Hãy dùng nó để gọi đúng tên điều đang xảy ra, chưa cần vội phán xét tốt hay xấu.`,
+      `Ở vị trí “${position}”, ${card.name} chỉ vào phần dễ bị bỏ qua: động cơ, nỗi sợ hoặc nguồn lực chưa được thừa nhận. Đây thường là chiếc chìa khóa làm thay đổi cách đọc lá đầu tiên.`,
+      `Ở vị trí “${position}”, ${card.name} không hứa một kết quả cố định mà đề xuất thái độ và bước đi phù hợp nhất. Quyền quyết định vẫn nằm ở cách bạn sử dụng thông tin này.`
+    ];
+    const action = reversed
+      ? `${card.reflection} Vì lá đang ngược, hãy giảm tốc, kiểm tra điều bị né tránh và xử lý từ bên trong trước khi thúc ép hoàn cảnh thay đổi.`
+      : `${card.reflection} Chọn một hành động nhỏ, rõ ràng và có thể thực hiện trong 24 giờ để đưa thông điệp của lá bài vào thực tế.`;
+    return { domain:domainMap[domain.key][suit], position:positionTexts[Math.min(index,2)], action };
+  }
+  function createSynthesis(names,domain) {
+    const reversedCount = state.selected.filter(item => item.reversed).length;
+    const suits = state.selected.map(item => item.card.suit).filter(Boolean);
+    const repeatedSuit = suits.find((suit,index) => suits.indexOf(suit) !== index);
+    const tone = reversedCount >= 2
+      ? 'Nhiều lá ngược cho thấy câu trả lời chưa nằm ở việc hành động nhanh. Trải bài thiên về tháo gỡ nút thắt, nhìn lại giả định và thu hồi năng lượng đang bị phân tán.'
+      : reversedCount === 1
+        ? 'Một lá ngược tạo ra điểm nghẽn trong tiến trình. Đây không phải điềm xấu; nó chỉ ra chính xác nơi cần kiên nhẫn hoặc thay đổi cách tiếp cận.'
+        : 'Ba lá xuôi tạo nên một dòng chuyển động khá rõ: nhận biết, điều chỉnh và tiến lên. Tuy vậy, sự thuận chiều vẫn cần lựa chọn có ý thức.';
+    const element = repeatedSuit
+      ? 'Một nhóm nguyên tố được lặp lại cho thấy chủ đề này đang chiếm nhiều năng lượng hơn bạn tưởng. Đừng chỉ xử lý biểu hiện bên ngoài; hãy quay về nhu cầu cốt lõi mà các lá cùng nhắc tới.'
+      : 'Các lá đến từ những nhóm năng lượng khác nhau, vì vậy câu chuyện cần sự cân bằng giữa cảm xúc, suy nghĩ, hành động và thực tế thay vì dựa vào một phía duy nhất.';
+    return `Nhìn tổng thể, ${names} tạo thành một tiến trình hoàn chỉnh cho ${domain.label.toLowerCase()}: lá đầu xác định thực trạng, lá giữa mở phần chưa được nhìn thấy và lá cuối đưa ra hướng hành động. ${tone} ${element} Hãy đọc cả ba như một câu chuyện liên tục, không tách chúng thành ba dự đoán rời rạc.`;
   }
   function reset() { state.shuffled = false; state.selected = null; $('deck').classList.remove('is-shuffling'); $('shuffleButton').disabled = false; show('startScreen'); }
   $('newReading').addEventListener('click', reset); $('resetButton').addEventListener('click', reset);
