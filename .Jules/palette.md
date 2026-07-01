@@ -1,3 +1,6 @@
 ## 2024-06-19 - Added ARIA and tooltips to Focus Timer controls
 **Learning:** Found multiple icon-only timer control buttons (Play/Pause, Complete, Skip, Mute, Close) in `apps/routine.html` without accessible labels or tooltips, meaning screen readers would announce them unhelpfully (e.g., "button, button, button") and mouse users would have to guess what "⏭" or "✓" does.
 **Action:** Always verify icon-only buttons have both an `aria-label` (for screen readers) and a `title` (for mouse user tooltips), and update them dynamically when the button state changes (e.g. `title={run?"Pause":"Play"} aria-label={run?"Pause timer":"Start timer"}`).
+## 2026-07-01 - Added dynamic ARIA labels and tooltips to Todo app buttons
+**Learning:** Found several icon-only buttons in the Todo app (like `#back-btn`, `#theme-toggle`, `.check-btn`, `.icon-btn`, `.ns-del`, and `.sub-check`) lacking hover tooltips (`title` attribute) and some lacking dynamic `aria-label`s for screen readers based on state.
+**Action:** Consistently added `title` attributes matching existing `aria-label`s, and made the labels on `.sub-check` dynamically toggle between "Tích việc con" and "Bỏ tích việc con" based on the task's completion state to improve screen reader feedback.
