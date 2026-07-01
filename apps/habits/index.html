@@ -685,7 +685,10 @@ function pullDaily(cb){
           if(!ds)return;
           var day=getDay(ds);day.pageId=page.id;day.habits={};
           var completed=p['Habits']&&p['Habits'].relation?p['Habits'].relation:[];
-          completed.forEach(function(rel){day.habits[rel.id]=true;});
+          completed.forEach(function(rel){
+            var habit=HABITS.find(function(h){return h.k===rel.id;});
+            if(habit&&!habit.checkbox)day.habits[rel.id]=true;
+          });
           HABITS.forEach(function(h){
             if(h.checkbox&&p[h.checkbox]&&p[h.checkbox].checkbox){
               day.habits[h.k]=true;
@@ -705,7 +708,7 @@ function pullDaily(cb){
 function pushNotion(ds){
   if(!D.notion.ok)return;
   var day=getDay(ds);var props={};
-  props['Habits']={relation:HABITS.filter(function(h){return day.habits[h.k];}).map(function(h){return{id:h.k};})};
+  props['Habits']={relation:HABITS.filter(function(h){return !h.checkbox&&day.habits[h.k];}).map(function(h){return{id:h.k};})};
   HABITS.forEach(function(h){
     if(h.checkbox)props[h.checkbox]={checkbox:!!day.habits[h.k]};
   });
