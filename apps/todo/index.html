@@ -224,11 +224,11 @@ body{
 <div class="app">
 
   <div class="topbar">
-    <button class="gear-btn" id="back-btn" aria-label="Quay lại">
+    <button class="gear-btn" id="back-btn" aria-label="Quay lại" title="Quay lại">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
     </button>
     <h1 class="page-title" id="page-title">Tất cả</h1>
-    <button class="date-time" id="theme-toggle" type="button" aria-label="Đổi giao diện; giữ để xoá task trong tab hiện tại">
+    <button class="date-time" id="theme-toggle" type="button" aria-label="Đổi giao diện; giữ để xoá task trong tab hiện tại" title="Đổi giao diện; giữ để xoá task trong tab hiện tại">
       <div class="dt-time" id="dt-time">--:--</div>
       <div class="dt-date" id="dt-date"></div>
     </button>
@@ -260,7 +260,7 @@ body{
   <button onclick="undoDelete()">Hoàn tác</button>
 </div>
 
-<button class="fab" id="fab-add" aria-label="Thêm việc">
+<button class="fab" id="fab-add" aria-label="Thêm việc" title="Thêm việc">
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
 </button>
 
@@ -579,7 +579,7 @@ function renderEditSubtaskList(){
   const el=document.getElementById('edit-subtask-list');
   if(!el)return;
   if(!t||t.subtasks.length===0){el.innerHTML='<div class="subtask-empty">Chưa có việc con nào</div>';return;}
-  el.innerHTML=t.subtasks.map(s=>`<div class="ns-item"><button class="sub-check${s.done?' on':''}" onclick="editToggleSubtask(${s.id})" aria-label="Tích việc con">${CHECK_SVG}</button><input class="ns-input${s.done?' done-sub':''}" type="text" value="${escAttr(s.text)}" onblur="editRenameSubtask(${s.id},this.value)" onkeydown="if(event.key==='Enter')this.blur()"/><button class="ns-del" onclick="editRemoveSubtask(${s.id})" aria-label="Xoá việc con">${ICON_X}</button></div>`).join('');
+  el.innerHTML=t.subtasks.map(s=>`<div class="ns-item"><button class="sub-check${s.done?' on':''}" onclick="editToggleSubtask(${s.id})" aria-label="${s.done?'Bỏ tích việc con':'Tích việc con'}" title="${s.done?'Bỏ tích việc con':'Tích việc con'}">${CHECK_SVG}</button><input class="ns-input${s.done?' done-sub':''}" type="text" value="${escAttr(s.text)}" onblur="editRenameSubtask(${s.id},this.value)" onkeydown="if(event.key==='Enter')this.blur()"/><button class="ns-del" onclick="editRemoveSubtask(${s.id})" aria-label="Xoá việc con" title="Xoá việc con">${ICON_X}</button></div>`).join('');
 }
 
 function setProj(p){Sound.tap();vibrate(5);activeProj=p;render();}
@@ -628,7 +628,7 @@ function render(){
     const subPct=subTotal>0?Math.round(subDone/subTotal*100):0;
     return`<div class="todo-card${t.done?' done-card':''}" data-id="${t.id}" style="${firstRender?'animation-delay:'+(i*30)+'ms':'animation:none'}">
   <div class="todo-main">
-    <button class="check-btn" onclick="toggle(${t.id},this)" aria-label="${t.done?'Bỏ xong':'Đánh dấu xong'}">${CHECK_SVG}</button>
+    <button class="check-btn" onclick="toggle(${t.id},this)" aria-label="${t.done?'Bỏ xong':'Đánh dấu xong'}" title="${t.done?'Bỏ xong':'Đánh dấu xong'}">${CHECK_SVG}</button>
     <div class="todo-body" data-edit="${t.id}">
       <div class="todo-text">${escH(t.text)}</div>
       <div class="todo-meta">
@@ -638,11 +638,11 @@ function render(){
       </div>
     </div>
     <div class="todo-actions">
-      <button class="icon-btn edit-btn" onclick="openEdit(${t.id})" aria-label="Sửa">${ICON_EDIT}</button>
+      <button class="icon-btn edit-btn" onclick="openEdit(${t.id})" aria-label="Sửa" title="Sửa">${ICON_EDIT}</button>
     </div>
   </div>
   ${subTotal>0?`<div class="subtask-area">
-    ${t.subtasks.map(s=>`<div class="subtask-item"><button class="sub-check${s.done?' on':''}" onclick="toggleSubtask(${t.id},${s.id})" aria-label="Tích việc con">${CHECK_SVG}</button><span class="subtask-text${s.done?' done-sub':''}">${escH(s.text)}</span></div>`).join('')}
+    ${t.subtasks.map(s=>`<div class="subtask-item"><button class="sub-check${s.done?' on':''}" onclick="toggleSubtask(${t.id},${s.id})" aria-label="${s.done?'Bỏ tích việc con':'Tích việc con'}" title="${s.done?'Bỏ tích việc con':'Tích việc con'}">${CHECK_SVG}</button><span class="subtask-text${s.done?' done-sub':''}">${escH(s.text)}</span></div>`).join('')}
   </div>`:''}
 </div>`;
   }).join('');
@@ -655,7 +655,7 @@ const backdrop=document.getElementById('sheet-backdrop');
 let newSubtasks=[];
 function renderNewSubtaskList(){
   const el=document.getElementById('new-subtask-list');
-  el.innerHTML=newSubtasks.map((s,idx)=>`<div class="ns-item"><span>${escH(s)}</span><button class="ns-del" onclick="removeNewSubtask(${idx})" aria-label="Xoá việc con">${ICON_X}</button></div>`).join('');
+  el.innerHTML=newSubtasks.map((s,idx)=>`<div class="ns-item"><span>${escH(s)}</span><button class="ns-del" onclick="removeNewSubtask(${idx})" aria-label="Xoá việc con" title="Xoá việc con">${ICON_X}</button></div>`).join('');
 }
 function removeNewSubtask(idx){Sound.tap();vibrate(5);newSubtasks.splice(idx,1);renderNewSubtaskList();}
 function addNewSubtaskFromInput(){
