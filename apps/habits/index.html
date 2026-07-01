@@ -300,6 +300,7 @@ var FALLBACK_HABITS=[
   {k:'Economy',   l:'Economy',        e:'💰', g:'Lifestyle'},
 ];
 var HABITS=FALLBACK_HABITS.slice();
+var DAILY_CHECKBOXES={};
 var MOODS=['😢','😴','😰','😡','🌿','😀','🤩'];
 var MOOD_LABELS=['😢 Sad','😴 Tired','😰 Anxious','😡 Angry','🌿 Calm','😀 Happy','🤩 Excited'];
 var ENERGY=['⚡︎','⚡','⚡⚡','⚡⚡⚡'];
@@ -621,9 +622,35 @@ function updateSyncUI(){
 }
 
 function pullNotion(cb){
-  pullHabits(function(){
-    pullDaily(cb);
+  pullDailySchema(function(){
+    pullHabits(function(){
+      pullDaily(cb);
+    });
   });
+}
+
+function normalizedName(value){
+  return(value||'').trim().toLowerCase().replace(/\s+/g,' ');
+}
+
+function checkboxForHabit(name){
+  return DAILY_CHECKBOXES[normalizedName(name)]||'';
+}
+
+function pullDailySchema(cb){
+  nFetch('GET','https://api.notion.com/v1/databases/'+D.notion.dbId,null,
+    function(ok,data){
+      if(ok){
+        DAILY_CHECKBOXES={};
+        Object.keys(data.properties||{}).forEach(function(name){
+          if(data.properties[name]&&data.properties[name].type==='checkbox'){
+            DAILY_CHECKBOXES[normalizedName(name)]=name;
+          }
+        });
+      }
+      if(cb)cb(ok);
+    }
+  );
 }
 
 function pullHabits(cb){
@@ -637,7 +664,7 @@ function pullHabits(cb){
           var name=titleProp&&titleProp.title?(titleProp.title.map(function(x){return x.plain_text||'';}).join('')):'';
           var type=p['Type']&&p['Type'].select?p['Type'].select.name:'';
           var visual=habitVisual(name,type);
-          return{k:page.id,l:name||'Untitled habit',e:visual.e,g:visual.g};
+          return{k:page.id,l:name||'Untitled habit',e:visual.e,g:visual.g,checkbox:checkboxForHabit(name)};
         }).filter(function(h){return h.l;});
         if(dynamic.length)HABITS=dynamic;
       }
@@ -659,6 +686,11 @@ function pullDaily(cb){
           var day=getDay(ds);day.pageId=page.id;day.habits={};
           var completed=p['Habits']&&p['Habits'].relation?p['Habits'].relation:[];
           completed.forEach(function(rel){day.habits[rel.id]=true;});
+          HABITS.forEach(function(h){
+            if(h.checkbox&&p[h.checkbox]&&p[h.checkbox].checkbox){
+              day.habits[h.k]=true;
+            }
+          });
           if(p['Mood']&&p['Mood'].select)day.mood=p['Mood'].select.name||'';
           if(p['Energy']&&p['Energy'].select)day.energy=p['Energy'].select.name||'';
           if(p['Productivion']&&p['Productivion'].select)day.prod=parseInt(p['Productivion'].select.name)||0;
@@ -674,6 +706,9 @@ function pushNotion(ds){
   if(!D.notion.ok)return;
   var day=getDay(ds);var props={};
   props['Habits']={relation:HABITS.filter(function(h){return day.habits[h.k];}).map(function(h){return{id:h.k};})};
+  HABITS.forEach(function(h){
+    if(h.checkbox)props[h.checkbox]={checkbox:!!day.habits[h.k]};
+  });
   if(day.mood)props['Mood']={select:{name:day.mood}};
   if(day.energy)props['Energy']={select:{name:day.energy}};
   if(day.prod)props['Productivion']={select:{name:String(day.prod)}};
